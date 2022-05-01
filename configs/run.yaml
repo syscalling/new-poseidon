@@ -2,4 +2,10 @@ dataset:
   value: "wave.Layer"
 num_trajectories:
   value: 128
-model_na
+model_name:
+  value: "B"
+lr:
+  value: 0.00005
+lr_embedding_recovery:
+  value: 0.0005
+lr_ti
