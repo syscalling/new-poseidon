@@ -8,4 +8,9 @@ lr:
   value: 0.00005
 lr_embedding_recovery:
   value: 0.0005
-lr_ti
+lr_time_embedding:
+  value: 0.0005
+weight_decay:
+  value: 0.000001
+lr_scheduler:
+  value: "cosin
