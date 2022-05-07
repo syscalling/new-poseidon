@@ -1,1 +1,4 @@
-pr
+project: <WANDB_PROJECT>
+entity: <WANDB_ENTITY>
+program: scOT/train.py
+metho
