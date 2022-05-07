@@ -18,4 +18,9 @@ warmup_ratio:
   value: 0.0
 early_stopping_patience:
   value: 200
-nu
+num_epochs:
+  value: 200
+batch_size:
+  value: 40
+max_grad_norm:
+  value: 5.0
