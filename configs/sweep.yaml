@@ -1,4 +1,9 @@
 project: <WANDB_PROJECT>
 entity: <WANDB_ENTITY>
 program: scOT/train.py
-metho
+method: grid
+metric:
+  name: "eval/loss"
+  goal: minimize
+command:
+  - "HDF5_USE_
