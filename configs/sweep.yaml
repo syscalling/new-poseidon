@@ -10,4 +10,7 @@ command:
   - "accelerate" 
   - "launch"
   - ${program}
- 
+  - "--disable_tqdm"
+  - "--json-config"
+  - "--finetune_from"
+  - "caml
