@@ -13,4 +13,7 @@ command:
   - "--disable_tqdm"
   - "--json-config"
   - "--finetune_from"
-  - "caml
+  - "camlab-ethz/Poseidon-B"
+  - "--replace_embedding_recovery"
+  - "--config"
+  - ${args
