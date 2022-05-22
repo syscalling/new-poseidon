@@ -6,4 +6,8 @@ metric:
   name: "eval/loss"
   goal: minimize
 command:
-  - "HDF5_USE_
+  - "HDF5_USE_FILE_LOCKING=FALSE"
+  - "accelerate" 
+  - "launch"
+  - ${program}
+ 
