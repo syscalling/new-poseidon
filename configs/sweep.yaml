@@ -16,4 +16,8 @@ command:
   - "camlab-ethz/Poseidon-B"
   - "--replace_embedding_recovery"
   - "--config"
-  - ${args
+  - ${args_json}
+parameters:
+  dataset:
+    value: "wave.Layer"
+  num_trajectories:
