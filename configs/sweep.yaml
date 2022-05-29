@@ -21,3 +21,10 @@ parameters:
   dataset:
     value: "wave.Layer"
   num_trajectories:
+    values:
+      - 1
+      - 2
+      - 4
+      - 8
+      - 16
+      
