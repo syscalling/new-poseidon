@@ -33,3 +33,8 @@ parameters:
       - 256
       - 512
       - 1024
+  model_name:
+    value: "B"
+  lr:
+    value: 0.00005
+  lr_embedding_recove
