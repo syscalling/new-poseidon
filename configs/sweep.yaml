@@ -37,4 +37,8 @@ parameters:
     value: "B"
   lr:
     value: 0.00005
-  lr_embedding_recove
+  lr_embedding_recovery:
+    value: 0.0005
+  lr_time_embedding:
+    value: 0.0005
+  
