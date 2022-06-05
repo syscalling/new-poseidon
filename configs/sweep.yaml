@@ -41,4 +41,8 @@ parameters:
     value: 0.0005
   lr_time_embedding:
     value: 0.0005
-  
+  weight_decay:
+    value: 0.000001
+  lr_scheduler:
+    value: "cosine"
+  warmup_rati
