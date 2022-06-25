@@ -1,1 +1,4 @@
-[pro
+[project]
+name = "scOT"
+version = "1.0.0"
+description = "Foundation models for PDEs based on a s
