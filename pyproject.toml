@@ -8,4 +8,11 @@ dependencies = [
     "numpy",
     "transformers",
     "matplotlib",
-    "a
+    "accelerate",
+    "wandb",
+    "h5py",
+    "pandas",
+    "pyyaml",
+]
+
+[
