@@ -15,4 +15,6 @@ dependencies = [
     "pyyaml",
 ]
 
-[
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_c
