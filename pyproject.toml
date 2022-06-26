@@ -4,4 +4,8 @@ version = "1.0.0"
 description = "Foundation models for PDEs based on a scalable Operator Transformer"
 dependencies = [
     "torch",
-   
+    "torchvision",
+    "numpy",
+    "transformers",
+    "matplotlib",
+    "a
