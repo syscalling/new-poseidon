@@ -68,3 +68,75 @@ def get_trainer(
     model = ScOT.from_pretrained(model_path)
     args = TrainingArguments(
         output_dir=".",
+        per_device_eval_batch_size=batch_size,
+        eval_accumulation_steps=16,
+        dataloader_num_workers=workers,
+    )
+    time_involved = isinstance(dataset, BaseTimeDataset)
+
+    def compute_metrics(eval_preds):
+        if time_involved and output_all_steps:
+            return {}
+        channel_list = dataset.channel_slice_list
+
+        def get_relative_statistics(errors):
+            median_error = np.median(errors, axis=0)
+            mean_error = np.mean(errors, axis=0)
+            std_error = np.std(errors, axis=0)
+            min_error = np.min(errors, axis=0)
+            max_error = np.max(errors, axis=0)
+            return {
+                "median_relative_l1_error": median_error,
+                "mean_relative_l1_error": mean_error,
+                "std_relative_l1_error": std_error,
+                "min_relative_l1_error": min_error,
+                "max_relative_l1_error": max_error,
+            }
+
+        def get_statistics(errors):
+            median_error = np.median(errors, axis=0)
+            mean_error = np.mean(errors, axis=0)
+            std_error = np.std(errors, axis=0)
+            min_error = np.min(errors, axis=0)
+            max_error = np.max(errors, axis=0)
+            return {
+                "median_l1_error": median_error,
+                "mean_l1_error": mean_error,
+                "std_l1_error": std_error,
+                "min_l1_error": min_error,
+                "max_l1_error": max_error,
+            }
+
+        relative_errors = [
+            relative_lp_error(
+                eval_preds.predictions[:, channel_list[i] : channel_list[i + 1]],
+                eval_preds.label_ids[:, channel_list[i] : channel_list[i + 1]],
+                p=1,
+                return_percent=True,
+            )
+            for i in range(len(channel_list) - 1)
+        ]
+
+        errors = [
+            lp_error(
+                eval_preds.predictions[:, channel_list[i] : channel_list[i + 1]],
+                eval_preds.label_ids[:, channel_list[i] : channel_list[i + 1]],
+                p=1,
+            )
+            for i in range(len(channel_list) - 1)
+        ]
+
+        relative_error_statistics = [
+            get_relative_statistics(relative_errors[i])
+            for i in range(len(channel_list) - 1)
+        ]
+
+        error_statistics = [
+            get_statistics(errors[i]) for i in range(len(channel_list) - 1)
+        ]
+
+        if dataset.output_dim == 1:
+            relative_error_statistics = relative_error_statistics[0]
+            error_statistics = error_statistics[0]
+            if full_data:
+                relative_error_statistics["relative_full_data"] = relative_errors[
