@@ -140,3 +140,65 @@ def get_trainer(
             error_statistics = error_statistics[0]
             if full_data:
                 relative_error_statistics["relative_full_data"] = relative_errors[
+                    0
+                ].tolist()
+                error_statistics["full_data"] = errors[0].tolist()
+            return {**relative_error_statistics, **error_statistics}
+        else:
+            mean_over_relative_means = np.mean(
+                np.array(
+                    [
+                        stats["mean_relative_l1_error"]
+                        for stats in relative_error_statistics
+                    ]
+                ),
+                axis=0,
+            )
+            mean_over_relative_medians = np.mean(
+                np.array(
+                    [
+                        stats["median_relative_l1_error"]
+                        for stats in relative_error_statistics
+                    ]
+                ),
+                axis=0,
+            )
+            mean_over_means = np.mean(
+                np.array([stats["mean_l1_error"] for stats in error_statistics]), axis=0
+            )
+            mean_over_medians = np.mean(
+                np.array([stats["median_l1_error"] for stats in error_statistics]),
+                axis=0,
+            )
+
+            error_statistics_ = {
+                "mean_relative_l1_error": mean_over_relative_means,
+                "mean_over_median_relative_l1_error": mean_over_relative_medians,
+                "mean_l1_error": mean_over_means,
+                "mean_over_median_l1_error": mean_over_medians,
+            }
+            #!! The above is different from train and finetune (here mean_relative_l1_error is mean over medians instead of mean over means)
+            for i, stats in enumerate(relative_error_statistics):
+                for key, value in stats.items():
+                    error_statistics_[
+                        dataset.printable_channel_description[i] + "/" + key
+                    ] = value
+                    if full_data:
+                        error_statistics_[
+                            dataset.printable_channel_description[i]
+                            + "/"
+                            + "relative_full_data"
+                        ] = relative_errors[i].tolist()
+            for i, stats in enumerate(error_statistics):
+                for key, value in stats.items():
+                    error_statistics_[
+                        dataset.printable_channel_description[i] + "/" + key
+                    ] = value
+                    if full_data:
+                        error_statistics_[
+                            dataset.printable_channel_description[i] + "/" + "full_data"
+                        ] = errors[i].tolist()
+            return error_statistics_
+
+    trainer = Trainer(
+        model=model,
