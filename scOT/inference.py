@@ -202,3 +202,84 @@ def get_trainer(
 
     trainer = Trainer(
         model=model,
+        args=args,
+        compute_metrics=compute_metrics,
+    )
+    return trainer
+
+
+def rollout(trainer, dataset, ar_steps=1, output_all_steps=False):
+    """
+    Do a rollout of the model.
+
+    Args:
+        trainer: Trainer
+            Trainer for the model.
+        dataset: BaseTimeDataset
+            Test set.
+        ar_steps: int or list
+            Number of autoregressive steps to take. A single int n is interpreted as taking n homogeneous steps, a list of ints [j_0, j_1, ...] is interpreted as taking a step of size j_i.
+        output_all_steps: bool
+            Whether to output all preliminary steps in autoregressive rollout.
+    """
+    time_involved = isinstance(dataset, BaseTimeDataset)
+    if time_involved and ar_steps != 1:
+        trainer.set_ar_steps(ar_steps, output_all_steps=output_all_steps)
+    else:
+        trainer.set_ar_steps(ar_steps=1, output_all_steps=False)
+
+    prediction = trainer.predict(dataset, metric_key_prefix="")
+
+    try:
+        return prediction.predictions, prediction.label_ids, prediction.metrics
+    except:
+        return prediction.predictions
+
+
+def get_test_set(
+    dataset, data_path, initial_time=None, final_time=None, dataset_kwargs={}
+):
+    """
+    Get a test set (input at initial_time, output at final_time).
+
+    Args:
+        dataset: str
+            Dataset name.
+        data_path: str
+            Path to data.
+        initial_time: int
+            Initial time step to start from.
+        final_time: int
+            Final time step to end at.
+        dataset_kwargs: dict
+            Additional arguments for dataset as in scOT.problems.base.get_dataset.
+    """
+    if initial_time is not None and final_time is not None:
+        dataset_kwargs = {
+            **dataset_kwargs,
+            "fix_input_to_time_step": initial_time,
+            "time_step_size": final_time - initial_time,
+            "max_num_time_steps": 1,
+        }
+    dataset = get_dataset(
+        dataset=dataset,
+        which="test",
+        num_trajectories=1,
+        data_path=data_path,
+        move_to_local_scratch=None,
+        **dataset_kwargs,
+    )
+    return dataset
+
+
+def get_first_n_inputs(dataset, n):
+    """
+    Helper to get the first n inputs of a dataset.
+    """
+    inputs = []
+    for i in range(n):
+        inputs.append(dataset[i]["pixel_values"])
+    return torch.stack(inputs)
+
+
+def get_trajectories(
