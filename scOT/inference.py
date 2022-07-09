@@ -283,3 +283,81 @@ def get_first_n_inputs(dataset, n):
 
 
 def get_trajectories(
+    dataset, data_path, ar_steps, initial_time, final_time, dataset_kwargs
+):
+    """
+    Get full trajectories in a dataset. Helper for accumulation error evaluation.
+
+    Args:
+        dataset: str
+            Dataset name.
+        data_path: str
+            Path to data.
+        ar_steps: int or list
+            Number of autoregressive steps to take. A single int n is interpreted as taking n homogeneous steps, a list of ints [j_0, j_1, ...] is interpreted as taking a step of size j_i.
+        initial_time: int
+            Initial time step to start from.
+        final_time: int
+            Final time step to end at.
+        dataset_kwargs: dict
+            Additional arguments for dataset as in scOT.problems.base.get_dataset.
+    """
+    trajectories = []
+    if isinstance(ar_steps, int):
+        delta = (final_time - initial_time) // ar_steps
+        for i in range(ar_steps):
+            dataset_ = get_test_set(
+                dataset,
+                data_path,
+                initial_time + i * delta,
+                initial_time + (i + 1) * delta,
+                dataset_kwargs,
+            )
+            traj_ = []
+            for j in range(len(dataset_)):
+                traj_.append(dataset_[j]["labels"])
+            trajectories.append(torch.stack(traj_))
+    else:
+        running_time = initial_time
+        for i in ar_steps:
+            dataset_ = get_test_set(
+                dataset, data_path, running_time, running_time + i, dataset_kwargs
+            )
+            running_time += i
+            traj_ = []
+            for j in range(len(dataset_)):
+                traj_.append(dataset_[j]["labels"])
+            trajectories.append(torch.stack(traj_))
+    return torch.stack(trajectories, dim=1)
+
+
+def remove_underscore_dict(d):
+    return {key[1:] if key.startswith("_") else key: value for key, value in d.items()}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Do different evaluations for a model, see --mode."
+    )
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        required=False,
+        help="Model path. Not required when mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--file",
+        type=str,
+        required=True,
+        help="File to load/write to. May also be a directory to save samples.",
+    )
+    parser.add_argument(
+        "--data_path",
+        type=str,
+        required=True,
+        help="Path to data.",
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        help="Which test set to load. Not required if mode==eval_sweep or save_samples_sweep.",
