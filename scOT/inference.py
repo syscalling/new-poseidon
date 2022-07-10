@@ -361,3 +361,69 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         help="Which test set to load. Not required if mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=64,
+        help="Batch size for evaluation.",
+    )
+    parser.add_argument(
+        "--full_data",
+        action="store_true",
+        help="Whether to save full data distributions.",
+    )
+    parser.add_argument(
+        "--initial_time",
+        type=int,
+        default=None,
+        help="Initial time step to start from.",
+    )
+    parser.add_argument(
+        "--final_time",
+        type=int,
+        default=None,
+        help="Final time step to end at.",
+    )
+    parser.add_argument(
+        "--ar_steps",
+        type=int,
+        nargs="+",
+        default=[1],
+        help="Number of autoregressive steps to take. A single int n is interpreted as taking n homogeneous steps, a list of ints [j_0, j_1, ...] is interpreted as taking a step of size j_i.",
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=[
+            "save_samples",
+            "save_samples_sweep",
+            "eval",
+            "eval_sweep",
+            "eval_accumulation_error",
+            "eval_resolutions",
+        ],
+        default="eval",
+        help="Mode to run. Can be either save_samples to save n samples, save_samples_sweep, eval (to evaluate a single model), eval_sweep (to evaluate all models in a wandb sweep), eval_accumulation_error (to evaluate a model's accumulation error), eval_resolutions (to evaluate a model on different resolutions).",
+    )
+    parser.add_argument(
+        "--save_n_samples",
+        type=int,
+        default=1,
+        help="Number of samples to save. Only required for mode==save_samples or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--resolutions",
+        type=int,
+        nargs="+",
+        help="List of resolutions to evaluate. Only required for mode==eval_resolutions.",
+    )
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        default="scOT",
+        help="Wandb project name. Required if mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--wandb_entity",
+        type=str,
