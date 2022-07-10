@@ -580,3 +580,77 @@ if __name__ == "__main__":
                         params.file
                         + "/"
                         + dset_name.replace(".", "-")
+                        + "/"
+                        + str(num_trajectories)
+                    )
+                np.save(
+                    params.file
+                    + "/"
+                    + dset_name.replace(".", "-")
+                    + "/"
+                    + str(num_trajectories)
+                    + "/inputs.npy",
+                    inputs.cpu().numpy(),
+                )
+                np.save(
+                    params.file
+                    + "/"
+                    + dset_name.replace(".", "-")
+                    + "/"
+                    + str(num_trajectories)
+                    + "/labels.npy",
+                    labels[: params.save_n_samples],
+                )
+                np.save(
+                    params.file
+                    + "/"
+                    + dset_name.replace(".", "-")
+                    + "/"
+                    + str(num_trajectories)
+                    + "/"
+                    + "outputs.npy",
+                    outputs[: params.save_n_samples],
+                )
+    else:
+        if params.mode == "eval":
+            dataset = get_test_set(
+                params.dataset,
+                params.data_path,
+                params.initial_time,
+                params.final_time,
+                dataset_kwargs,
+            )
+            trainer = get_trainer(
+                params.model_path,
+                params.batch_size,
+                dataset,
+                full_data=params.full_data,
+            )
+            _, _, metrics = rollout(
+                trainer,
+                dataset,
+                ar_steps=params.ar_steps,
+                output_all_steps=False,
+            )
+            data = {
+                "dataset": params.dataset,
+                "initial_time": params.initial_time,
+                "final_time": params.final_time,
+                "ar_steps": ar_steps,
+                **metrics,
+            }
+            data = [remove_underscore_dict(data)]
+        elif params.mode == "eval_sweep":
+            api = wandb.Api()
+            sweep = api.sweep(
+                params.wandb_entity
+                + "/"
+                + params.wandb_project
+                + "/"
+                + params.wandb_sweep_id
+            )
+            data = []
+            for run in sweep.runs:
+                if run.state == "finished" or (
+                    params.allow_failed and run.state == "failed"
+                ):
