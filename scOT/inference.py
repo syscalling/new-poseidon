@@ -508,3 +508,75 @@ if __name__ == "__main__":
             params.file + "/" + params.dataset.replace(".", "-") + "/" + "labels.npy",
             labels[: params.save_n_samples],
         )
+        np.save(
+            params.file + "/" + params.dataset.replace(".", "-") + "/" + "outputs.npy",
+            outputs[: params.save_n_samples],
+        )
+    elif params.mode == "save_samples_sweep":
+        api = wandb.Api()
+        sweep = api.sweep(
+            params.wandb_entity
+            + "/"
+            + params.wandb_project
+            + "/"
+            + params.wandb_sweep_id
+        )
+        for run in sweep.runs:
+            if run.state == "finished" or (
+                params.allow_failed and run.state == "failed"
+            ):
+                dset_name = run.config["dataset"]
+                if run.config["num_trajectories"] != params.num_trajectories:
+                    continue
+                if dset_name in params.exclude_dataset:
+                    continue
+                if (
+                    len(params.exclusively_evaluate_dataset) > 0
+                    and dset_name not in params.exclusively_evaluate_dataset
+                ):
+                    continue
+                num_trajectories = run.config["num_trajectories"]
+                ckpt_dir = (
+                    params.ckpt_dir
+                    + "/"
+                    + params.wandb_project
+                    + "/"
+                    + params.wandb_sweep_id
+                    + "/"
+                    + run.name
+                )
+                items = os.listdir(ckpt_dir)
+                dirs = [
+                    item
+                    for item in items
+                    if os.path.isdir(os.path.join(ckpt_dir, item))
+                ]
+                if len(dirs) > 1:
+                    print(
+                        "WARNING: more than one checkpoint in run directory " + ckpt_dir
+                    )
+                    print("choosing " + dirs[0])
+                model_path = os.path.join(ckpt_dir, dirs[0])
+                dataset = get_test_set(
+                    dset_name,
+                    params.data_path,
+                    params.initial_time,
+                    params.final_time,
+                    dataset_kwargs,
+                )
+                trainer = get_trainer(model_path, params.batch_size, dataset)
+                inputs = get_first_n_inputs(dataset, params.save_n_samples)
+                outputs, labels, _ = rollout(trainer, dataset, ar_steps=params.ar_steps)
+                if not os.path.exists(params.file + "/" + dset_name.replace(".", "-")):
+                    os.makedirs(params.file + "/" + dset_name.replace(".", "-"))
+                if not os.path.exists(
+                    params.file
+                    + "/"
+                    + dset_name.replace(".", "-")
+                    + "/"
+                    + str(num_trajectories)
+                ):
+                    os.makedirs(
+                        params.file
+                        + "/"
+                        + dset_name.replace(".", "-")
