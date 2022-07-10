@@ -427,3 +427,84 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wandb_entity",
         type=str,
+        required=False,
+        help="Wandb entity name. Required if mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--wandb_sweep_id",
+        type=str,
+        default=None,
+        help="Wandb sweep id. Required if mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--ckpt_dir",
+        type=str,
+        required=True,
+        help="Base checkpoint directory. Required if mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--exclude_dataset",
+        type=str,
+        nargs="+",
+        default=[],
+        help="Datasets to exclude from evaluation. Only relevant when mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--exclusively_evaluate_dataset",
+        type=str,
+        nargs="+",
+        default=[],
+        help="Datasets to exclusively evaluate. Only relevant when mode==eval_sweep or save_samples_sweep.",
+    )
+    parser.add_argument(
+        "--just_velocities",
+        action="store_true",
+        help="Use just velocities in incompressible flow data.",
+    )
+    parser.add_argument(
+        "--allow_failed",
+        action="store_true",
+        help="Allow failed runs to be taken into account with eval_sweep.",
+    )
+    parser.add_argument(
+        "--append_time",
+        action="store_true",
+        help="Append .time to dataset name for evaluation.",
+    )
+    parser.add_argument(
+        "--num_trajectories",
+        type=int,
+        default=128,
+        help="Filter runs for number of training trajectories. Only relevant if mode==eval_sweep or save_samples_sweep.",
+    )
+    params = parser.parse_args()
+    if len(params.ar_steps) == 1:
+        params.ar_steps = params.ar_steps[0]
+        ar_steps = params.ar_steps
+    else:
+        ar_steps = params.ar_steps
+        params.ar_steps = [
+            step / (params.final_time - params.initial_time) for step in params.ar_steps
+        ]
+    dataset_kwargs = {}
+    if params.just_velocities:
+        dataset_kwargs["just_velocities"] = True
+    if params.mode == "save_samples":
+        dataset = get_test_set(
+            params.dataset,
+            params.data_path,
+            params.initial_time,
+            params.final_time,
+            dataset_kwargs,
+        )
+        trainer = get_trainer(params.model_path, params.batch_size, dataset)
+        inputs = get_first_n_inputs(dataset, params.save_n_samples)
+        outputs, labels, _ = rollout(trainer, dataset, ar_steps=params.ar_steps)
+        np.save(
+            params.file + "/" + params.dataset.replace(".", "-") + "/" + "inputs.npy",
+            inputs.cpu().numpy(),
+        )
+        np.save(
+            params.file + "/" + params.dataset.replace(".", "-") + "/" + "labels.npy",
+            labels[: params.save_n_samples],
+        )
