@@ -740,3 +740,62 @@ if __name__ == "__main__":
             )
             predictions, _, _ = rollout(
                 trainer,
+                dataset,
+                ar_steps=params.ar_steps,
+                output_all_steps=True,
+            )
+            labels = get_trajectories(
+                params.dataset,
+                params.data_path,
+                params.ar_steps,
+                params.initial_time,
+                params.final_time,
+                dataset_kwargs,
+            )
+
+            def compute_metrics(eval_preds):
+                channel_list = dataset.channel_slice_list
+
+                def get_relative_statistics(errors):
+                    median_error = np.median(errors, axis=0)
+                    mean_error = np.mean(errors, axis=0)
+                    std_error = np.std(errors, axis=0)
+                    min_error = np.min(errors, axis=0)
+                    max_error = np.max(errors, axis=0)
+                    return {
+                        "median_relative_l1_error": median_error,
+                        "mean_relative_l1_error": mean_error,
+                        "std_relative_l1_error": std_error,
+                        "min_relative_l1_error": min_error,
+                        "max_relative_l1_error": max_error,
+                    }
+
+                def get_statistics(errors):
+                    median_error = np.median(errors, axis=0)
+                    mean_error = np.mean(errors, axis=0)
+                    std_error = np.std(errors, axis=0)
+                    min_error = np.min(errors, axis=0)
+                    max_error = np.max(errors, axis=0)
+                    return {
+                        "median_l1_error": median_error,
+                        "mean_l1_error": mean_error,
+                        "std_l1_error": std_error,
+                        "min_l1_error": min_error,
+                        "max_l1_error": max_error,
+                    }
+
+                relative_errors = [
+                    relative_lp_error(
+                        eval_preds.predictions[
+                            :, channel_list[i] : channel_list[i + 1]
+                        ],
+                        eval_preds.label_ids[:, channel_list[i] : channel_list[i + 1]],
+                        p=1,
+                        return_percent=True,
+                    )
+                    for i in range(len(channel_list) - 1)
+                ]
+
+                errors = [
+                    lp_error(
+                        eval_preds.predictions[
