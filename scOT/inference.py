@@ -654,3 +654,89 @@ if __name__ == "__main__":
                 if run.state == "finished" or (
                     params.allow_failed and run.state == "failed"
                 ):
+                    dset_name = (
+                        run.config["dataset"]
+                        if not params.append_time
+                        else run.config["dataset"] + ".time"
+                    )
+                    if dset_name in params.exclude_dataset:
+                        continue
+                    if (
+                        len(params.exclusively_evaluate_dataset) > 0
+                        and dset_name not in params.exclusively_evaluate_dataset
+                    ):
+                        continue
+                    num_trajectories = run.config["num_trajectories"]
+                    ckpt_dir = (
+                        params.ckpt_dir
+                        + "/"
+                        + params.wandb_project
+                        + "/"
+                        + params.wandb_sweep_id
+                        + "/"
+                        + run.name
+                    )
+                    items = os.listdir(ckpt_dir)
+                    dirs = [
+                        item
+                        for item in items
+                        if os.path.isdir(os.path.join(ckpt_dir, item))
+                    ]
+                    if len(dirs) > 1:
+                        print(
+                            "WARNING: more than one checkpoint in run directory "
+                            + ckpt_dir
+                        )
+                        print("choosing " + dirs[0])
+                        continue
+                    if len(dirs) == 0:
+                        continue
+                    model_path = os.path.join(ckpt_dir, dirs[0])
+                    dataset = get_test_set(
+                        dset_name,
+                        params.data_path,
+                        params.initial_time,
+                        params.final_time,
+                        dataset_kwargs,
+                    )
+                    trainer = get_trainer(
+                        model_path,
+                        params.batch_size,
+                        dataset,
+                        full_data=params.full_data,
+                    )
+                    _, _, metrics = rollout(
+                        trainer,
+                        dataset,
+                        ar_steps=params.ar_steps,
+                        output_all_steps=False,
+                    )
+                    data.append(
+                        remove_underscore_dict(
+                            {
+                                "dataset": dset_name,
+                                "num_trajectories": num_trajectories,
+                                "initial_time": params.initial_time,
+                                "final_time": params.final_time,
+                                "ar_steps": ar_steps,
+                                **metrics,
+                            }
+                        )
+                    )
+        elif params.mode == "eval_accumulation_error":
+            dataset = get_test_set(
+                params.dataset,
+                params.data_path,
+                params.initial_time,
+                params.final_time,
+                dataset_kwargs,
+            )
+            trainer = get_trainer(
+                params.model_path,
+                params.batch_size,
+                dataset,
+                output_all_steps=True,
+                full_data=params.full_data,
+            )
+            predictions, _, _ = rollout(
+                trainer,
