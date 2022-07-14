@@ -799,3 +799,72 @@ if __name__ == "__main__":
                 errors = [
                     lp_error(
                         eval_preds.predictions[
+                            :, channel_list[i] : channel_list[i + 1]
+                        ],
+                        eval_preds.label_ids[:, channel_list[i] : channel_list[i + 1]],
+                        p=1,
+                    )
+                    for i in range(len(channel_list) - 1)
+                ]
+
+                relative_error_statistics = [
+                    get_relative_statistics(relative_errors[i])
+                    for i in range(len(channel_list) - 1)
+                ]
+
+                error_statistics = [
+                    get_statistics(errors[i]) for i in range(len(channel_list) - 1)
+                ]
+
+                if dataset.output_dim == 1:
+                    relative_error_statistics = relative_error_statistics[0]
+                    error_statistics = error_statistics[0]
+                    if params.full_data:
+                        relative_error_statistics["relative_full_data"] = (
+                            relative_errors[0].tolist()
+                        )
+                        error_statistics["full_data"] = errors[0].tolist()
+                    return {**relative_error_statistics, **error_statistics}
+                else:
+                    mean_over_relative_means = np.mean(
+                        np.array(
+                            [
+                                stats["mean_relative_l1_error"]
+                                for stats in relative_error_statistics
+                            ]
+                        ),
+                        axis=0,
+                    )
+                    mean_over_relative_medians = np.mean(
+                        np.array(
+                            [
+                                stats["median_relative_l1_error"]
+                                for stats in relative_error_statistics
+                            ]
+                        ),
+                        axis=0,
+                    )
+                    mean_over_means = np.mean(
+                        np.array(
+                            [stats["mean_l1_error"] for stats in error_statistics]
+                        ),
+                        axis=0,
+                    )
+                    mean_over_medians = np.mean(
+                        np.array(
+                            [stats["median_l1_error"] for stats in error_statistics]
+                        ),
+                        axis=0,
+                    )
+
+                    error_statistics_ = {
+                        "mean_relative_l1_error": mean_over_relative_means,
+                        "mean_over_median_relative_l1_error": mean_over_relative_medians,
+                        "mean_l1_error": mean_over_means,
+                        "mean_over_median_l1_error": mean_over_medians,
+                    }
+                    #!! The above is different from train and finetune (here mean_relative_l1_error is mean over medians instead of mean over means)
+                    for i, stats in enumerate(relative_error_statistics):
+                        for key, value in stats.items():
+                            error_statistics_[
+                                dataset.printable_channel_description[i] + "/" + key
