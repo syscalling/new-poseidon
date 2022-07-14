@@ -868,3 +868,82 @@ if __name__ == "__main__":
                         for key, value in stats.items():
                             error_statistics_[
                                 dataset.printable_channel_description[i] + "/" + key
+                            ] = value
+                            if params.full_data:
+                                error_statistics_[
+                                    dataset.printable_channel_description[i]
+                                    + "/"
+                                    + "relative_full_data"
+                                ] = relative_errors[i].tolist()
+                    for i, stats in enumerate(error_statistics):
+                        for key, value in stats.items():
+                            error_statistics_[
+                                dataset.printable_channel_description[i] + "/" + key
+                            ] = value
+                            if params.full_data:
+                                error_statistics_[
+                                    dataset.printable_channel_description[i]
+                                    + "/"
+                                    + "full_data"
+                                ] = errors[i].tolist()
+                    return error_statistics_
+
+            data = []
+            for step in range(predictions.shape[1]):
+                metrics = compute_metrics(
+                    EvalPrediction(predictions[:, step], labels[:, step].cpu().numpy())
+                )
+                if isinstance(params.ar_steps, int):
+                    delta = (params.final_time - params.initial_time) // params.ar_steps
+                else:
+                    delta = params.ar_steps[step]
+                data.append(
+                    remove_underscore_dict(
+                        {
+                            "dataset": params.dataset,
+                            "initial_time": params.initial_time + step * delta,
+                            "final_time": params.initial_time + (step + 1) * delta,
+                            **metrics,
+                        }
+                    )
+                )
+        elif params.mode == "eval_resolutions":
+            data = []
+            for resolution in params.resolutions:
+                dataset_kwargs = {"resolution": resolution}
+                dataset = get_test_set(
+                    params.dataset,
+                    params.data_path,
+                    params.initial_time,
+                    params.final_time,
+                    dataset_kwargs,
+                )
+                trainer = get_trainer(
+                    params.model_path,
+                    params.batch_size,
+                    dataset,
+                    full_data=params.full_data,
+                )
+                _, _, metrics = rollout(
+                    trainer,
+                    dataset,
+                    ar_steps=params.ar_steps,
+                    output_all_steps=False,
+                )
+                data.append(
+                    remove_underscore_dict(
+                        {
+                            "dataset": params.dataset,
+                            "initial_time": params.initial_time,
+                            "final_time": params.final_time,
+                            "ar_steps": ar_steps,
+                            "resolution": resolution,
+                            **metrics,
+                        }
+                    )
+                )
+
+        if os.path.exists(params.file):
+            df = pd.read_csv(params.file)
+        else:
+            df = pd.DataFrame()
