@@ -947,3 +947,5 @@ if __name__ == "__main__":
             df = pd.read_csv(params.file)
         else:
             df = pd.DataFrame()
+        df = pd.concat([df, pd.DataFrame(data)], ignore_index=True)
+        df.to_csv(params.file, index=False)
