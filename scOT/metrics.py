@@ -4,4 +4,5 @@ import numpy as np
 def lp_error(preds: np.ndarray, targets: np.ndarray, p=1):
     num_samples, num_channels, _, _ = preds.shape
     preds = preds.reshape(num_samples, num_channels, -1)
-    targets = t
+    targets = targets.reshape(num_samples, num_channels, -1)
+    errors = np.sum(np.abs(preds - tar
