@@ -11,4 +11,8 @@ def lp_error(preds: np.ndarray, targets: np.ndarray, p=1):
 
 def relative_lp_error(
     preds: np.ndarray,
-    targ
+    targets: np.ndarray,
+    p=1,
+    return_percent=True,
+):
+    num_samples, 
