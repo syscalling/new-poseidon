@@ -6,4 +6,9 @@ def lp_error(preds: np.ndarray, targets: np.ndarray, p=1):
     preds = preds.reshape(num_samples, num_channels, -1)
     targets = targets.reshape(num_samples, num_channels, -1)
     errors = np.sum(np.abs(preds - targets) ** p, axis=-1)
-    return np.sum(errors, axis=-1) ** (1 / 
+    return np.sum(errors, axis=-1) ** (1 / p)
+
+
+def relative_lp_error(
+    preds: np.ndarray,
+    targ
