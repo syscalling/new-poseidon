@@ -15,4 +15,5 @@ def relative_lp_error(
     p=1,
     return_percent=True,
 ):
-    num_samples, 
+    num_samples, num_channels, _, _ = preds.shape
+    preds = preds.reshape(num_s
