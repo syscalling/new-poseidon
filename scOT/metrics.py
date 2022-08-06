@@ -18,4 +18,5 @@ def relative_lp_error(
     num_samples, num_channels, _, _ = preds.shape
     preds = preds.reshape(num_samples, num_channels, -1)
     targets = targets.reshape(num_samples, num_channels, -1)
-    errors = np.sum(np.abs(preds - targets
+    errors = np.sum(np.abs(preds - targets) ** p, axis=-1)
+    normalization_factor = np.sum(np.abs(targets) ** p, axis=-1)
