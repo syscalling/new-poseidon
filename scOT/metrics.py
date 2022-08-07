@@ -27,4 +27,6 @@ def relative_lp_error(
         normalization_factor == 0, 1e-10, normalization_factor
     )
 
-    errors =
+    errors = (np.sum(errors, axis=-1) / normalization_factor) ** (1 / p)
+
+    if return_percent
