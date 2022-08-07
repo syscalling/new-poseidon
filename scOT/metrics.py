@@ -24,4 +24,7 @@ def relative_lp_error(
     # catch 0 division
     normalization_factor = np.sum(normalization_factor, axis=-1)
     normalization_factor = np.where(
-    
+        normalization_factor == 0, 1e-10, normalization_factor
+    )
+
+    errors =
