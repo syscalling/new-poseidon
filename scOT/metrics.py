@@ -20,3 +20,6 @@ def relative_lp_error(
     targets = targets.reshape(num_samples, num_channels, -1)
     errors = np.sum(np.abs(preds - targets) ** p, axis=-1)
     normalization_factor = np.sum(np.abs(targets) ** p, axis=-1)
+
+    # catch 0 division
+    normalization_factor = np.sum(normali
