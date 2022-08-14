@@ -29,4 +29,10 @@ def relative_lp_error(
 
     errors = (np.sum(errors, axis=-1) / normalization_factor) ** (1 / p)
 
-    if return_percent
+    if return_percent:
+        errors *= 100
+
+    return errors
+
+
+def mean_relative_l
