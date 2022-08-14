@@ -35,4 +35,8 @@ def relative_lp_error(
     return errors
 
 
-def mean_relative_l
+def mean_relative_lp_error(
+    preds: np.ndarray,
+    targets: np.ndarray,
+    p=1,
+    return_p
