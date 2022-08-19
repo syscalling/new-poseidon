@@ -41,4 +41,8 @@ def mean_relative_lp_error(
     p=1,
     return_percent=True,
 ):
-    errors = relative_lp_error(preds, targets, p, return_pe
+    errors = relative_lp_error(preds, targets, p, return_percent)
+    return np.mean(errors, axis=0)
+
+
+def median_rela
