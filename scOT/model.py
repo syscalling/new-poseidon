@@ -149,3 +149,75 @@ class ConditionalLayerNorm(nn.Module):
         self.bias = nn.Linear(1, dim)
 
     def forward(self, x, time):
+        mean = x.mean(dim=-1, keepdim=True)
+        var = (x**2).mean(dim=-1, keepdim=True) - mean**2
+        x = (x - mean) / (var + self.eps).sqrt()
+        time = time.reshape(-1, 1).type_as(x)
+        weight = self.weight(time).unsqueeze(1)
+        bias = self.bias(time).unsqueeze(1)
+        if x.dim() == 4:
+            weight = weight.unsqueeze(1)
+            bias = bias.unsqueeze(1)
+        return weight * x + bias
+
+
+class ConvNeXtBlock(nn.Module):
+    r"""Taken from: https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
+    ConvNeXt Block. There are two equivalent implementations:
+    (1) DwConv -> LayerNorm (channels_first) -> 1x1 Conv -> GELU -> 1x1 Conv; all in (N, C, H, W)
+    (2) DwConv -> Permute to (N, H, W, C); LayerNorm (channels_last) -> Linear -> GELU -> Linear; Permute back
+    We use (2) as we find it slightly faster in PyTorch
+
+    Args:
+        dim (int): Number of input channels.
+        drop_path (float): Stochastic depth rate. Default: 0.0
+        layer_scale_init_value (float): Init value for Layer Scale. Default: 1e-6.
+    """
+
+    def __init__(self, config, dim, drop_path=0.0, layer_scale_init_value=1e-6):
+        super().__init__()
+        self.dwconv = nn.Conv2d(
+            dim, dim, kernel_size=7, padding=3, groups=dim
+        )  # depthwise conv
+        if config.use_conditioning:
+            layer_norm = ConditionalLayerNorm
+        else:
+            layer_norm = LayerNorm
+        self.norm = layer_norm(dim, eps=config.layer_norm_eps)
+        self.pwconv1 = nn.Linear(
+            dim, 4 * dim
+        )  # pointwise/1x1 convs, implemented with linear layers
+        self.act = nn.GELU()
+        self.pwconv2 = nn.Linear(4 * dim, dim)
+        self.weight = (
+            nn.Parameter(layer_scale_init_value * torch.ones((dim)), requires_grad=True)
+            if layer_scale_init_value > 0
+            else None
+        )  # was gamma before
+        self.drop_path = Swinv2DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+
+    def forward(self, x, time):
+        batch_size, sequence_length, hidden_size = x.shape
+        #! assumes square images
+        input_dim = math.floor(sequence_length**0.5)
+
+        input = x
+        x = x.reshape(batch_size, input_dim, input_dim, hidden_size)
+        x = x.permute(0, 3, 1, 2)
+        x = self.dwconv(x)
+        x = x.permute(0, 2, 3, 1)  # (N, C, H, W) -> (N, H, W, C)
+        x = self.norm(x, time)
+        x = self.pwconv1(x)
+        x = self.act(x)
+        x = self.pwconv2(x)
+        if self.weight is not None:
+            x = self.weight * x
+        x = x.reshape(batch_size, sequence_length, hidden_size)
+
+        x = input + self.drop_path(x)
+        return x
+
+
+class ResNetBlock(nn.Module):
+    def __init__(self, config, dim):
+        super().__init__()
