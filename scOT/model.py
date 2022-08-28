@@ -221,3 +221,65 @@ class ConvNeXtBlock(nn.Module):
 class ResNetBlock(nn.Module):
     def __init__(self, config, dim):
         super().__init__()
+        kernel_size = 3
+        pad = (kernel_size - 1) // 2
+        self.conv1 = nn.Conv2d(dim, dim, kernel_size=kernel_size, stride=1, padding=pad)
+        self.conv2 = nn.Conv2d(dim, dim, kernel_size=kernel_size, stride=1, padding=pad)
+        self.bn1 = nn.BatchNorm2d(dim)
+        self.bn2 = nn.BatchNorm2d(dim)
+
+    def forward(self, x, time):
+        batch_size, sequence_length, hidden_size = x.shape
+        #! assumes square images
+        input_dim = math.floor(sequence_length**0.5)
+
+        input = x
+        x = x.reshape(batch_size, input_dim, input_dim, hidden_size)
+        x = x.permute(0, 3, 1, 2)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = nn.functional.leaky_relu(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = x.permute(0, 2, 3, 1)
+        x = x.reshape(batch_size, sequence_length, hidden_size)
+        x = x + input
+        return x
+
+
+class ScOTPatchEmbeddings(nn.Module):
+    """
+    This class turns `pixel_values` of shape `(batch_size, num_channels, height, width)` into the initial
+    `hidden_states` (patch embeddings) of shape `(batch_size, seq_length, hidden_size)` to be consumed by a
+    Transformer.
+    """
+
+    def __init__(self, config):
+        super().__init__()
+        image_size, patch_size = config.image_size, config.patch_size
+        num_channels, hidden_size = config.num_channels, config.embed_dim
+        image_size = (
+            image_size
+            if isinstance(image_size, collections.abc.Iterable)
+            else (image_size, image_size)
+        )
+        patch_size = (
+            patch_size
+            if isinstance(patch_size, collections.abc.Iterable)
+            else (patch_size, patch_size)
+        )
+        num_patches = (image_size[1] // patch_size[1]) * (
+            image_size[0] // patch_size[0]
+        )
+        self.image_size = image_size
+        self.patch_size = patch_size
+        self.num_channels = num_channels
+        self.num_patches = num_patches
+        self.grid_size = (
+            image_size[0] // patch_size[0],
+            image_size[1] // patch_size[1],
+        )
+
+        self.projection = nn.Conv2d(
+            num_channels, hidden_size, kernel_size=patch_size, stride=patch_size
+        )
