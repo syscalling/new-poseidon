@@ -283,3 +283,76 @@ class ScOTPatchEmbeddings(nn.Module):
         self.projection = nn.Conv2d(
             num_channels, hidden_size, kernel_size=patch_size, stride=patch_size
         )
+
+    def maybe_pad(self, pixel_values, height, width):
+        if width % self.patch_size[1] != 0:
+            pad_values = (0, self.patch_size[1] - width % self.patch_size[1])
+            pixel_values = nn.functional.pad(pixel_values, pad_values)
+        if height % self.patch_size[0] != 0:
+            pad_values = (0, 0, 0, self.patch_size[0] - height % self.patch_size[0])
+            pixel_values = nn.functional.pad(pixel_values, pad_values)
+        return pixel_values
+
+    def forward(
+        self, pixel_values: Optional[torch.FloatTensor]
+    ) -> Tuple[torch.Tensor, Tuple[int]]:
+        _, num_channels, height, width = pixel_values.shape
+        if num_channels != self.num_channels:
+            raise ValueError(
+                "Make sure that the channel dimension of the pixel values match with the one set in the configuration."
+            )
+        # pad the input to be divisible by self.patch_size, if needed
+        pixel_values = self.maybe_pad(pixel_values, height, width)
+        embeddings = self.projection(pixel_values)
+        _, _, height, width = embeddings.shape
+        output_dimensions = (height, width)
+        embeddings = embeddings.flatten(2).transpose(1, 2)
+
+        return embeddings, output_dimensions
+
+
+class ScOTEmbeddings(nn.Module):
+    """
+    Construct the patch and position embeddings. Optionally, also the mask token.
+    """
+
+    def __init__(self, config, use_mask_token=False):
+        super().__init__()
+
+        self.patch_embeddings = ScOTPatchEmbeddings(config)
+        num_patches = self.patch_embeddings.num_patches
+        self.patch_grid = self.patch_embeddings.grid_size
+        self.mask_token = (
+            nn.Parameter(torch.zeros(1, 1, config.embed_dim))
+            if use_mask_token
+            else None
+        )
+
+        if config.use_absolute_embeddings:
+            self.position_embeddings = nn.Parameter(
+                torch.zeros(1, num_patches, config.embed_dim)
+            )
+        else:
+            self.position_embeddings = None
+
+        if config.use_conditioning:
+            layer_norm = ConditionalLayerNorm
+        else:
+            layer_norm = LayerNorm
+
+        self.norm = layer_norm(config.embed_dim)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+    def forward(
+        self,
+        pixel_values: Optional[torch.FloatTensor],
+        bool_masked_pos: Optional[torch.BoolTensor] = None,
+        time: Optional[torch.FloatTensor] = None,
+    ) -> Tuple[torch.Tensor]:
+        embeddings, output_dimensions = self.patch_embeddings(pixel_values)
+        embeddings = self.norm(embeddings, time)
+        batch_size, seq_len, _ = embeddings.size()
+
+        if bool_masked_pos is not None:
+            mask_tokens = self.mask_token.expand(batch_size, seq_len, -1)
+            # replace the masked visual tokens by mask_tokens
