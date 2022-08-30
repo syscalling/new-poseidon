@@ -356,3 +356,86 @@ class ScOTEmbeddings(nn.Module):
         if bool_masked_pos is not None:
             mask_tokens = self.mask_token.expand(batch_size, seq_len, -1)
             # replace the masked visual tokens by mask_tokens
+            mask = bool_masked_pos.unsqueeze(-1).type_as(mask_tokens)
+            embeddings = embeddings * (1.0 - mask) + mask_tokens * mask
+
+        if self.position_embeddings is not None:
+            embeddings = embeddings + self.position_embeddings
+
+        embeddings = self.dropout(embeddings)
+
+        return embeddings, output_dimensions
+
+
+class ScOTLayer(nn.Module):
+    def __init__(
+        self,
+        config,
+        dim,
+        input_resolution,
+        num_heads,
+        drop_path=0.0,
+        shift_size=0,
+        pretrained_window_size=0,
+    ):
+        super().__init__()
+        self.chunk_size_feed_forward = config.chunk_size_feed_forward
+        self.shift_size = shift_size
+        self.window_size = config.window_size
+        self.input_resolution = input_resolution
+        self.set_shift_and_window_size(input_resolution)
+        self.attention = Swinv2Attention(
+            config=config,
+            dim=dim,
+            num_heads=num_heads,
+            window_size=self.window_size,
+            pretrained_window_size=(
+                pretrained_window_size
+                if isinstance(pretrained_window_size, collections.abc.Iterable)
+                else (pretrained_window_size, pretrained_window_size)
+            ),
+        )
+        if config.use_conditioning:
+            layer_norm = ConditionalLayerNorm
+        else:
+            layer_norm = LayerNorm
+        self.layernorm_before = layer_norm(dim, eps=config.layer_norm_eps)
+        self.drop_path = Swinv2DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+        self.intermediate = Swinv2Intermediate(config, dim)
+        self.output = Swinv2Output(config, dim)
+        self.layernorm_after = layer_norm(dim, eps=config.layer_norm_eps)
+
+    def set_shift_and_window_size(self, input_resolution):
+        target_window_size = (
+            self.window_size
+            if isinstance(self.window_size, collections.abc.Iterable)
+            else (self.window_size, self.window_size)
+        )
+        target_shift_size = (
+            self.shift_size
+            if isinstance(self.shift_size, collections.abc.Iterable)
+            else (self.shift_size, self.shift_size)
+        )
+        window_dim = (
+            input_resolution[0].item()
+            if torch.is_tensor(input_resolution[0])
+            else input_resolution[0]
+        )
+        self.window_size = (
+            window_dim if window_dim <= target_window_size[0] else target_window_size[0]
+        )
+        self.shift_size = (
+            0
+            if input_resolution
+            <= (
+                self.window_size
+                if isinstance(self.window_size, collections.abc.Iterable)
+                else (self.window_size, self.window_size)
+            )
+            else target_shift_size[0]
+        )
+
+    def get_attn_mask(self, height, width, dtype):
+        if self.shift_size > 0:
+            # calculate attention mask for shifted window multihead self attention
+            img_mask = torch.zeros((1, height, width, 1), dtype=dtype)
