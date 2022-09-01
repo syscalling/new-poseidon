@@ -439,3 +439,70 @@ class ScOTLayer(nn.Module):
         if self.shift_size > 0:
             # calculate attention mask for shifted window multihead self attention
             img_mask = torch.zeros((1, height, width, 1), dtype=dtype)
+            height_slices = (
+                slice(0, -self.window_size),
+                slice(-self.window_size, -self.shift_size),
+                slice(-self.shift_size, None),
+            )
+            width_slices = (
+                slice(0, -self.window_size),
+                slice(-self.window_size, -self.shift_size),
+                slice(-self.shift_size, None),
+            )
+            count = 0
+            for height_slice in height_slices:
+                for width_slice in width_slices:
+                    img_mask[:, height_slice, width_slice, :] = count
+                    count += 1
+
+            mask_windows = window_partition(img_mask, self.window_size)
+            mask_windows = mask_windows.view(-1, self.window_size * self.window_size)
+            attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
+            attn_mask = attn_mask.masked_fill(
+                attn_mask != 0, float(-100.0)
+            ).masked_fill(attn_mask == 0, float(0.0))
+        else:
+            attn_mask = None
+        return attn_mask
+
+    def maybe_pad(self, hidden_states, height, width):
+        pad_right = (self.window_size - width % self.window_size) % self.window_size
+        pad_bottom = (self.window_size - height % self.window_size) % self.window_size
+        pad_values = (0, 0, 0, pad_right, 0, pad_bottom)
+        hidden_states = nn.functional.pad(hidden_states, pad_values)
+        return hidden_states, pad_values
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        input_dimensions: Tuple[int, int],
+        time: torch.Tensor,
+        head_mask: Optional[torch.FloatTensor] = None,
+        output_attentions: Optional[bool] = False,
+        always_partition: Optional[bool] = False,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        if not always_partition:
+            self.set_shift_and_window_size(input_dimensions)
+        else:
+            pass
+        height, width = input_dimensions
+        batch_size, _, channels = hidden_states.size()
+        shortcut = hidden_states
+
+        # pad hidden_states to multiples of window size
+        hidden_states = hidden_states.view(batch_size, height, width, channels)
+        hidden_states, pad_values = self.maybe_pad(hidden_states, height, width)
+        _, height_pad, width_pad, _ = hidden_states.shape
+        # cyclic shift
+        if self.shift_size > 0:
+            shifted_hidden_states = torch.roll(
+                hidden_states, shifts=(-self.shift_size, -self.shift_size), dims=(1, 2)
+            )
+        else:
+            shifted_hidden_states = hidden_states
+
+        # partition windows
+        hidden_states_windows = window_partition(
+            shifted_hidden_states, self.window_size
+        )
+        hidden_states_windows = hidden_states_windows.view(
