@@ -506,3 +506,72 @@ class ScOTLayer(nn.Module):
             shifted_hidden_states, self.window_size
         )
         hidden_states_windows = hidden_states_windows.view(
+            -1, self.window_size * self.window_size, channels
+        )
+        attn_mask = self.get_attn_mask(height_pad, width_pad, dtype=hidden_states.dtype)
+        if attn_mask is not None:
+            attn_mask = attn_mask.to(hidden_states_windows.device)
+
+        attention_outputs = self.attention(
+            hidden_states_windows,
+            attn_mask,
+            head_mask,
+            output_attentions=output_attentions,
+        )
+
+        attention_output = attention_outputs[0]
+
+        attention_windows = attention_output.view(
+            -1, self.window_size, self.window_size, channels
+        )
+        shifted_windows = window_reverse(
+            attention_windows, self.window_size, height_pad, width_pad
+        )
+
+        # reverse cyclic shift
+        if self.shift_size > 0:
+            attention_windows = torch.roll(
+                shifted_windows, shifts=(self.shift_size, self.shift_size), dims=(1, 2)
+            )
+        else:
+            attention_windows = shifted_windows
+
+        was_padded = pad_values[3] > 0 or pad_values[5] > 0
+        if was_padded:
+            attention_windows = attention_windows[:, :height, :width, :].contiguous()
+
+        attention_windows = attention_windows.view(batch_size, height * width, channels)
+        hidden_states = self.layernorm_before(attention_windows, time)
+        hidden_states = shortcut + self.drop_path(hidden_states)
+
+        layer_output = self.intermediate(hidden_states)
+        layer_output = self.output(layer_output)
+        layer_output = hidden_states + self.drop_path(
+            self.layernorm_after(layer_output, time)
+        )
+
+        layer_outputs = (
+            (layer_output, attention_outputs[1])
+            if output_attentions
+            else (layer_output,)
+        )
+        return layer_outputs
+
+
+class ScOTPatchRecovery(nn.Module):
+    """https://github.com/198808xc/Pangu-Weather/blob/main/pseudocode.py"""
+
+    def __init__(self, config):
+        super().__init__()
+        image_size, patch_size = config.image_size, config.patch_size
+        num_out_channels, hidden_size = (
+            config.num_out_channels,
+            config.embed_dim,  # if not config.skip_connections[0] else 2 * config.embed_dim,
+        )
+        image_size = (
+            image_size
+            if isinstance(image_size, collections.abc.Iterable)
+            else (image_size, image_size)
+        )
+        patch_size = (
+            patch_size
