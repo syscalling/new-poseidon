@@ -575,3 +575,77 @@ class ScOTPatchRecovery(nn.Module):
         )
         patch_size = (
             patch_size
+            if isinstance(patch_size, collections.abc.Iterable)
+            else (patch_size, patch_size)
+        )
+        num_patches = (image_size[0] // patch_size[0]) * (
+            image_size[1] // patch_size[1]
+        )
+        self.num_patches = num_patches
+        self.patch_size = patch_size
+        self.image_size = image_size
+        self.num_out_channels = num_out_channels
+        self.grid_size = (
+            image_size[0] // patch_size[0],
+            image_size[1] // patch_size[1],
+        )
+
+        self.projection = nn.ConvTranspose2d(
+            in_channels=hidden_size,
+            out_channels=num_out_channels,
+            kernel_size=patch_size,
+            stride=patch_size,
+        )
+        # the following is not done in Pangu
+        self.mixup = nn.Conv2d(
+            num_out_channels,
+            num_out_channels,
+            kernel_size=5,
+            stride=1,
+            padding=2,
+            bias=False,
+        )
+
+    def maybe_crop(self, pixel_values, height, width):
+        if pixel_values.shape[2] > height:
+            pixel_values = pixel_values[:, :, :height, :]
+        if pixel_values.shape[3] > width:
+            pixel_values = pixel_values[:, :, :, :width]
+        return pixel_values
+
+    def forward(self, hidden_states):
+        hidden_states = hidden_states.transpose(1, 2)
+        hidden_states = hidden_states.reshape(
+            hidden_states.shape[0], hidden_states.shape[1], *self.grid_size
+        )
+
+        output = self.projection(hidden_states)
+        output = self.maybe_crop(output, self.image_size[0], self.image_size[1])
+        return self.mixup(output)
+
+
+class ScOTPatchMerging(nn.Module):
+    """
+    Patch Merging Layer.
+
+    Args:
+        input_resolution (`Tuple[int]`):
+            Resolution of input feature.
+        dim (`int`):
+            Number of input channels.
+        norm_layer (`nn.Module`, *optional*, defaults to `nn.LayerNorm`):
+            Normalization layer class.
+    """
+
+    def __init__(
+        self, input_resolution: Tuple[int], dim: int, norm_layer: nn.Module = LayerNorm
+    ) -> None:
+        super().__init__()
+        self.input_resolution = input_resolution
+        self.dim = dim
+        self.reduction = nn.Linear(4 * dim, 2 * dim, bias=False)
+        self.norm = norm_layer(2 * dim)
+
+    def maybe_pad(self, input_feature, height, width):
+        should_pad = (height % 2 == 1) or (width % 2 == 1)
+        if should_pad:
