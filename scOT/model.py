@@ -649,3 +649,59 @@ class ScOTPatchMerging(nn.Module):
     def maybe_pad(self, input_feature, height, width):
         should_pad = (height % 2 == 1) or (width % 2 == 1)
         if should_pad:
+            pad_values = (0, 0, 0, width % 2, 0, height % 2)
+            input_feature = nn.functional.pad(input_feature, pad_values)
+
+        return input_feature
+
+    def forward(
+        self,
+        input_feature: torch.Tensor,
+        input_dimensions: Tuple[int, int],
+        time: torch.Tensor,
+    ) -> torch.Tensor:
+        height, width = input_dimensions
+        # `dim` is height * width
+        batch_size, dim, num_channels = input_feature.shape
+
+        input_feature = input_feature.view(batch_size, height, width, num_channels)
+        # pad input to be disible by width and height, if needed
+        input_feature = self.maybe_pad(input_feature, height, width)
+        # [batch_size, height/2, width/2, num_channels]
+        input_feature_0 = input_feature[:, 0::2, 0::2, :]
+        # [batch_size, height/2, width/2, num_channels]
+        input_feature_1 = input_feature[:, 1::2, 0::2, :]
+        # [batch_size, height/2, width/2, num_channels]
+        input_feature_2 = input_feature[:, 0::2, 1::2, :]
+        # [batch_size, height/2, width/2, num_channels]
+        input_feature_3 = input_feature[:, 1::2, 1::2, :]
+        # [batch_size, height/2 * width/2, 4*num_channels]
+        input_feature = torch.cat(
+            [input_feature_0, input_feature_1, input_feature_2, input_feature_3], -1
+        )
+        input_feature = input_feature.view(
+            batch_size, -1, 4 * num_channels
+        )  # [batch_size, height/2 * width/2, 4*C]
+
+        input_feature = self.reduction(input_feature)
+        input_feature = self.norm(input_feature, time)
+
+        return input_feature
+
+
+class ScOTPatchUnmerging(nn.Module):
+    def __init__(
+        self,
+        input_resolution: Tuple[int],
+        dim: int,
+        norm_layer: nn.Module = LayerNorm,
+    ) -> None:
+        super().__init__()
+        self.input_resolution = input_resolution
+        self.dim = dim
+        self.upsample = nn.Linear(dim, 2 * dim, bias=False)
+        self.mixup = nn.Linear(dim // 2, dim // 2, bias=False)
+        self.norm = norm_layer(dim // 2)
+
+    def maybe_crop(self, input_feature, height, width):
+        height_in, width_in = input_feature.shape[1], input_feature.shape[2]
