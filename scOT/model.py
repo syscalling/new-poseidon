@@ -705,3 +705,80 @@ class ScOTPatchUnmerging(nn.Module):
 
     def maybe_crop(self, input_feature, height, width):
         height_in, width_in = input_feature.shape[1], input_feature.shape[2]
+        if height_in > height:
+            input_feature = input_feature[:, :height, :, :]
+        if width_in > width:
+            input_feature = input_feature[:, :, :width, :]
+        return input_feature
+
+    def forward(
+        self,
+        input_feature: torch.Tensor,
+        output_dimensions: Tuple[int, int],
+        time: torch.Tensor,
+    ) -> torch.Tensor:
+        output_height, output_width = output_dimensions
+        batch_size, seq_len, hidden_size = input_feature.shape
+        #! assume square image
+        input_height = input_width = math.floor(seq_len**0.5)
+        input_feature = self.upsample(input_feature)
+        input_feature = input_feature.reshape(
+            batch_size, input_height, input_width, 2, 2, hidden_size // 2
+        )
+        input_feature = input_feature.permute(0, 1, 3, 2, 4, 5)
+        input_feature = input_feature.reshape(
+            batch_size, 2 * input_height, 2 * input_width, hidden_size // 2
+        )
+
+        input_feature = self.maybe_crop(input_feature, output_height, output_width)
+        input_feature = input_feature.reshape(batch_size, -1, hidden_size // 2)
+
+        input_feature = self.norm(input_feature, time)
+        return self.mixup(input_feature)
+
+
+class ScOTEncodeStage(nn.Module):
+    def __init__(
+        self,
+        config,
+        dim,
+        input_resolution,
+        depth,
+        num_heads,
+        drop_path,
+        downsample,
+        pretrained_window_size=0,
+    ):
+        super().__init__()
+        self.config = config
+        self.dim = dim
+        window_size = (
+            config.window_size
+            if isinstance(config.window_size, collections.abc.Iterable)
+            else (config.window_size, config.window_size)
+        )
+        self.blocks = nn.ModuleList(
+            [
+                ScOTLayer(
+                    config=config,
+                    dim=dim,
+                    input_resolution=input_resolution,
+                    num_heads=num_heads,
+                    shift_size=(
+                        [0, 0]
+                        if (i % 2 == 0)
+                        else [window_size[0] // 2, window_size[1] // 2]
+                    ),
+                    drop_path=drop_path[i],
+                    pretrained_window_size=pretrained_window_size,
+                )
+                for i in range(depth)
+            ]
+        )
+
+        # patch merging layer
+        if downsample is not None:
+            if config.use_conditioning:
+                layer_norm = ConditionalLayerNorm
+            else:
+                layer_norm = LayerNorm
