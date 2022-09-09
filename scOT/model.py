@@ -782,3 +782,66 @@ class ScOTEncodeStage(nn.Module):
                 layer_norm = ConditionalLayerNorm
             else:
                 layer_norm = LayerNorm
+            self.downsample = downsample(
+                input_resolution, dim=dim, norm_layer=layer_norm
+            )
+        else:
+            self.downsample = None
+
+        self.pointing = False
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        input_dimensions: Tuple[int, int],
+        time: torch.Tensor,
+        head_mask: Optional[torch.FloatTensor] = None,
+        output_attentions: Optional[bool] = False,
+        always_partition: Optional[bool] = False,
+    ) -> Tuple[torch.Tensor]:
+        height, width = input_dimensions
+
+        inputs = hidden_states
+
+        for i, layer_module in enumerate(self.blocks):
+            layer_head_mask = head_mask[i] if head_mask is not None else None
+
+            layer_outputs = layer_module(
+                hidden_states,
+                input_dimensions,
+                time,
+                layer_head_mask,
+                output_attentions,
+                always_partition,
+            )
+
+            hidden_states = layer_outputs[0]
+
+        hidden_states_before_downsampling = hidden_states
+        if self.downsample is not None:
+            height_downsampled, width_downsampled = (height + 1) // 2, (width + 1) // 2
+            output_dimensions = (height, width, height_downsampled, width_downsampled)
+            hidden_states = self.downsample(
+                hidden_states_before_downsampling + inputs, input_dimensions, time
+            )
+        else:
+            output_dimensions = (height, width, height, width)
+
+        stage_outputs = (
+            hidden_states,
+            hidden_states_before_downsampling,
+            output_dimensions,
+        )
+
+        if output_attentions:
+            stage_outputs += layer_outputs[1:]
+        return stage_outputs
+
+
+class ScOTDecodeStage(nn.Module):
+    def __init__(
+        self,
+        config,
+        dim,
+        input_resolution,
+        depth,
