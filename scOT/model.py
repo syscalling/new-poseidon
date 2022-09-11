@@ -922,3 +922,72 @@ class ScOTDecodeStage(nn.Module):
             hidden_states = self.upsample(
                 hidden_states_before_upsampling,
                 (height_upsampled, width_upsampled),
+                time,
+            )
+        else:
+            output_dimensions = (height, width, height, width)
+
+        stage_outputs = (
+            hidden_states,
+            hidden_states_before_upsampling,
+            output_dimensions,
+        )
+
+        if output_attentions:
+            stage_outputs += layer_outputs[1:]
+        return stage_outputs
+
+
+class ScOTEncoder(nn.Module):
+    """
+    This is just a Swinv2Encoder with changed dpr.
+    We just have to change the drop path rate since we also have a decoder by default.
+    """
+
+    def __init__(self, config, grid_size, pretrained_window_sizes=(0, 0, 0, 0)):
+        super().__init__()
+        self.num_layers = len(config.depths)
+        self.config = config
+        if self.config.pretrained_window_sizes is not None:
+            pretrained_window_sizes = config.pretrained_window_sizes
+        drop_rates_encode_decode = torch.linspace(
+            0, config.drop_path_rate, 2 * sum(config.depths)
+        )
+        dpr = [
+            x.item()
+            for x in drop_rates_encode_decode[: drop_rates_encode_decode.shape[0] // 2]
+        ]
+        self.layers = nn.ModuleList(
+            [
+                ScOTEncodeStage(
+                    config=config,
+                    dim=int(config.embed_dim * 2**i_layer),
+                    input_resolution=(
+                        grid_size[0] // (2**i_layer),
+                        grid_size[1] // (2**i_layer),
+                    ),
+                    depth=config.depths[i_layer],
+                    num_heads=config.num_heads[i_layer],
+                    drop_path=dpr[
+                        sum(config.depths[:i_layer]) : sum(config.depths[: i_layer + 1])
+                    ],
+                    downsample=(
+                        ScOTPatchMerging if (i_layer < self.num_layers - 1) else None
+                    ),
+                    pretrained_window_size=pretrained_window_sizes[i_layer],
+                )
+                for i_layer in range(self.num_layers)
+            ]
+        )
+
+        self.gradient_checkpointing = False
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        input_dimensions: Tuple[int, int],
+        time: torch.Tensor,
+        head_mask: Optional[torch.FloatTensor] = None,
+        output_attentions: Optional[bool] = False,
+        output_hidden_states: Optional[bool] = False,
+        output_hidden_states_before_downsampling: Optional[bool] = False,
