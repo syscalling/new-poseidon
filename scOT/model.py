@@ -1055,3 +1055,85 @@ class ScOTEncoder(nn.Module):
                     batch_size, *input_dimensions, hidden_size
                 )
                 reshaped_hidden_state = reshaped_hidden_state.permute(0, 3, 1, 2)
+                all_hidden_states += (hidden_states,)
+                all_reshaped_hidden_states += (reshaped_hidden_state,)
+
+            if output_attentions:
+                all_self_attentions += layer_outputs[3:]
+
+        if not return_dict:
+            return tuple(
+                v
+                for v in [hidden_states, all_hidden_states, all_self_attentions]
+                if v is not None
+            )
+
+        return Swinv2EncoderOutput(
+            last_hidden_state=hidden_states,
+            hidden_states=all_hidden_states,
+            attentions=all_self_attentions,
+            reshaped_hidden_states=all_reshaped_hidden_states,
+        )
+
+
+class ScOTDecoder(nn.Module):
+    """Here we do reverse encoder."""
+
+    def __init__(self, config, grid_size, pretrained_window_sizes=(0, 0, 0, 0)):
+        super().__init__()
+        self.num_layers = len(config.depths)
+        self.config = config
+        if self.config.pretrained_window_sizes is not None:
+            pretrained_window_sizes = config.pretrained_window_sizes
+        drop_rates_encode_decode = torch.linspace(
+            0, config.drop_path_rate, 2 * sum(config.depths)
+        )
+        dpr = [
+            x.item()
+            for x in drop_rates_encode_decode[drop_rates_encode_decode.shape[0] // 2 :]
+        ]
+        self.layers = nn.ModuleList(
+            [
+                ScOTDecodeStage(
+                    config=config,
+                    dim=int(config.embed_dim * 2**i_layer),
+                    input_resolution=(
+                        grid_size[0] // (2**i_layer),
+                        grid_size[1] // (2**i_layer),
+                    ),
+                    depth=config.depths[i_layer],
+                    num_heads=config.num_heads[i_layer],
+                    drop_path=dpr[
+                        sum(config.depths[i_layer + 1 :]) : sum(config.depths[i_layer:])
+                    ],
+                    upsample=ScOTPatchUnmerging if i_layer > 0 else None,
+                    upsampled_size=(
+                        grid_size[0] // (2 ** (i_layer - 1)),
+                        grid_size[1] // (2 ** (i_layer - 1)),
+                    ),
+                    pretrained_window_size=pretrained_window_sizes[i_layer],
+                )
+                for i_layer in reversed(range(self.num_layers))
+            ]
+        )
+
+        self.gradient_checkpointing = False
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        input_dimensions: Tuple[int, int],
+        skip_states: List[torch.FloatTensor],
+        time: torch.Tensor,
+        head_mask: Optional[torch.FloatTensor] = None,
+        output_attentions: Optional[bool] = False,
+        output_hidden_states: Optional[bool] = False,
+        output_hidden_states_before_upsampling: Optional[bool] = False,
+        always_partition: Optional[bool] = False,
+        return_dict: Optional[bool] = True,
+    ) -> Union[Tuple, Swinv2EncoderOutput]:
+        all_hidden_states = () if output_hidden_states else None
+        all_reshaped_hidden_states = () if output_hidden_states else None
+        all_self_attentions = () if output_attentions else None
+
+        if output_hidden_states:
