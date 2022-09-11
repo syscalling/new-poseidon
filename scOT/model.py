@@ -845,3 +845,80 @@ class ScOTDecodeStage(nn.Module):
         dim,
         input_resolution,
         depth,
+        num_heads,
+        drop_path,
+        upsample,
+        upsampled_size,
+        pretrained_window_size=0,
+    ):
+        super().__init__()
+        self.config = config
+        self.dim = dim
+        window_size = (
+            config.window_size
+            if isinstance(config.window_size, collections.abc.Iterable)
+            else (config.window_size, config.window_size)
+        )
+        self.blocks = nn.ModuleList(
+            [
+                ScOTLayer(
+                    config=config,
+                    dim=dim,
+                    input_resolution=input_resolution,
+                    num_heads=num_heads,
+                    shift_size=(
+                        [0, 0]
+                        if (i % 2 == 0)
+                        else [window_size[0] // 2, window_size[1] // 2]
+                    ),
+                    drop_path=drop_path[depth - 1 - i],  # TODO: reverse...
+                    pretrained_window_size=pretrained_window_size,
+                )
+                for i in reversed(range(depth))  # TODO: reverse here?
+            ]
+        )
+
+        if upsample is not None:
+            if config.use_conditioning:
+                layer_norm = ConditionalLayerNorm
+            else:
+                layer_norm = LayerNorm
+            self.upsample = upsample(input_resolution, dim=dim, norm_layer=layer_norm)
+            self.upsampled_size = upsampled_size
+        else:
+            self.upsample = None
+
+        self.pointing = False
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        input_dimensions: Tuple[int, int],
+        time: torch.Tensor,
+        head_mask: Optional[torch.Tensor] = None,
+        output_attentions: Optional[bool] = False,
+        always_partition: Optional[bool] = False,
+    ) -> Tuple[torch.Tensor]:
+        height, width = input_dimensions
+
+        for i, layer_module in enumerate(self.blocks):
+            layer_head_mask = head_mask[i] if head_mask is not None else None
+
+            layer_outputs = layer_module(
+                hidden_states,
+                input_dimensions,
+                time,
+                layer_head_mask,
+                output_attentions,
+                always_partition,
+            )
+
+            hidden_states = layer_outputs[0]
+
+        hidden_states_before_upsampling = hidden_states
+        if self.upsample is not None:
+            height_upsampled, width_upsampled = self.upsampled_size
+            output_dimensions = (height, width, height_upsampled, width_upsampled)
+            hidden_states = self.upsample(
+                hidden_states_before_upsampling,
+                (height_upsampled, width_upsampled),
