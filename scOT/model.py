@@ -1208,3 +1208,84 @@ class ScOTDecoder(nn.Module):
                 for v in [hidden_states, all_hidden_states, all_self_attentions]
                 if v is not None
             )
+
+        return Swinv2EncoderOutput(
+            last_hidden_state=hidden_states,
+            hidden_states=all_hidden_states,
+            attentions=all_self_attentions,
+            reshaped_hidden_states=all_reshaped_hidden_states,
+        )
+
+
+class ScOT(Swinv2PreTrainedModel):
+    """Inspired by https://github.com/huggingface/transformers/blob/v4.35.2/src/transformers/models/swinv2/modeling_swinv2.py#L1129"""
+
+    def __init__(self, config, use_mask_token=False):
+        super().__init__(config)
+
+        self.config = config
+        self.num_layers_encoder = len(config.depths)
+        self.num_layers_decoder = len(config.depths)
+        self.num_features = int(config.embed_dim * 2 ** (self.num_layers_encoder - 1))
+
+        self.embeddings = ScOTEmbeddings(config, use_mask_token=use_mask_token)
+        self.encoder = ScOTEncoder(config, self.embeddings.patch_grid)
+        self.decoder = ScOTDecoder(config, self.embeddings.patch_grid)
+        self.patch_recovery = ScOTPatchRecovery(config)
+
+        if config.residual_model == "convnext":
+            res_model = ConvNeXtBlock
+        elif config.residual_model == "resnet":
+            res_model = ResNetBlock
+        else:
+            raise ValueError("residual_model must be 'convnext' or 'resnet'")
+
+        self.residual_blocks = nn.ModuleList(
+            [
+                (
+                    nn.ModuleList(
+                        [
+                            res_model(config, config.embed_dim * 2**i)
+                            for _ in range(depth)
+                        ]
+                    )
+                    if depth > 0
+                    else nn.ModuleList([nn.Identity()])
+                )
+                for i, depth in enumerate(config.skip_connections)
+            ]
+        )
+
+        self.post_init()
+
+    def get_input_embeddings(self):
+        return self.embeddings.patch_embeddings
+
+    def _prune_heads(self, heads_to_prune):
+        for layer, heads in heads_to_prune.items():
+            self.encoder.layers[layer].attention.prune_heads(heads)
+        for layer, heads in reversed(heads_to_prune.items()):
+            self.decoder.layers[layer].attention.prune_heads(heads)
+
+    def _downsample(self, image, target_size):
+        image_size = image.shape[-2]
+        freqs = torch.fft.fftfreq(image_size, d=1 / image_size)
+        sel = torch.logical_and(freqs >= -target_size / 2, freqs <= target_size / 2 - 1)
+        image_hat = torch.fft.fft2(image, norm="forward")
+        image_hat = image_hat[:, :, sel, :][:, :, :, sel]
+        image = torch.fft.ifft2(image_hat, norm="forward").real
+        return image
+
+    def _upsample(self, image, target_size):
+        # https://stackoverflow.com/questions/71143279/upsampling-images-in-frequency-domain-using-pytorch
+        image_size = image.shape[-2]
+        image_hat = torch.fft.fft2(image, norm="forward")
+        image_hat = torch.fft.fftshift(image_hat)
+        pad_size = (target_size - image_size) // 2
+        real = nn.functional.pad(
+            image_hat.real, (pad_size, pad_size, pad_size, pad_size), value=0.0
+        )
+        imag = nn.functional.pad(
+            image_hat.imag, (pad_size, pad_size, pad_size, pad_size), value=0.0
+        )
+        image_hat = torch.fft.ifftshift(torch.complex(real, imag))
