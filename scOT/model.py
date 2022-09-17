@@ -1289,3 +1289,69 @@ class ScOT(Swinv2PreTrainedModel):
             image_hat.imag, (pad_size, pad_size, pad_size, pad_size), value=0.0
         )
         image_hat = torch.fft.ifftshift(torch.complex(real, imag))
+        image = torch.fft.ifft2(image_hat, norm="forward").real
+        return image
+
+    def forward(
+        self,
+        pixel_values: Optional[torch.FloatTensor] = None,
+        time: Optional[torch.FloatTensor] = None,
+        bool_masked_pos: Optional[torch.BoolTensor] = None,
+        head_mask: Optional[torch.FloatTensor] = None,
+        pixel_mask: Optional[torch.BoolTensor] = None,
+        labels: Optional[torch.FloatTensor] = None,
+        output_attentions: Optional[bool] = None,
+        output_hidden_states: Optional[bool] = None,
+        return_dict: Optional[bool] = None,
+    ) -> Union[Tuple, ScOTOutput]:
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
+
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
+        )
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+
+        if pixel_values is None:
+            raise ValueError("pixel_values cannot be None")
+
+        head_mask = self.get_head_mask(
+            head_mask, self.num_layers_encoder + self.num_layers_decoder
+        )
+
+        if isinstance(head_mask, list):
+            head_mask_encoder = head_mask[: self.num_layers_encoder]
+            head_mask_decoder = head_mask[self.num_layers_encoder :]
+        else:
+            head_mask_encoder, head_mask_decoder = head_mask.split(
+                [self.num_layers_encoder, self.num_layers_decoder]
+            )
+
+        image_size = pixel_values.shape[2]
+        # image must be square
+        if image_size != self.config.image_size:
+            if image_size < self.config.image_size:
+                pixel_values = self._upsample(pixel_values, self.config.image_size)
+            else:
+                pixel_values = self._downsample(pixel_values, self.config.image_size)
+
+        embedding_output, input_dimensions = self.embeddings(
+            pixel_values, bool_masked_pos=bool_masked_pos, time=time
+        )
+
+        encoder_outputs = self.encoder(
+            embedding_output,
+            input_dimensions,
+            time,
+            head_mask=head_mask_encoder,
+            output_attentions=output_attentions,
+            output_hidden_states=True,
+            output_hidden_states_before_downsampling=True,
+            return_dict=return_dict,
