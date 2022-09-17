@@ -1355,3 +1355,68 @@ class ScOT(Swinv2PreTrainedModel):
             output_hidden_states=True,
             output_hidden_states_before_downsampling=True,
             return_dict=return_dict,
+        )
+
+        if return_dict:
+            skip_states = list(encoder_outputs.hidden_states[1:])
+        else:
+            skip_states = list(encoder_outputs[1][1:])
+
+        for i in range(len(skip_states)):
+            for block in self.residual_blocks[i]:
+                if isinstance(block, nn.Identity):
+                    skip_states[i] = block(skip_states[i])
+                else:
+                    skip_states[i] = block(skip_states[i], time)
+
+        #! assumes square images
+        input_dim = math.floor(skip_states[-1].shape[1] ** 0.5)
+        decoder_output = self.decoder(
+            skip_states[-1],
+            (input_dim, input_dim),
+            time=time,
+            skip_states=skip_states[:-1],
+            head_mask=head_mask_decoder,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
+        )
+
+        sequence_output = decoder_output[0]
+        prediction = self.patch_recovery(sequence_output)
+        # The following can be used for learning just the residual for time-dependent problems
+        if self.config.learn_residual:
+            if self.config.num_channels > self.config.num_out_channels:
+                pixel_values = pixel_values[:, 0 : self.config.num_out_channels]
+            prediction += pixel_values
+
+        if image_size != self.config.image_size:
+            if image_size > self.config.image_size:
+                prediction = self._upsample(prediction, image_size)
+            else:
+                prediction = self._downsample(prediction, image_size)
+
+        if pixel_mask is not None:
+            prediction[pixel_mask] = labels[pixel_mask].type_as(prediction)
+        loss = None
+        if labels is not None:
+            if self.config.p == 1:
+                loss_fn = nn.functional.l1_loss
+            elif self.config.p == 2:
+                loss_fn = nn.functional.mse_loss
+            else:
+                raise ValueError("p must be 1 or 2")
+            if self.config.channel_slice_list_normalized_loss is not None:
+                loss = torch.mean(
+                    torch.stack(
+                        [
+                            loss_fn(
+                                prediction[
+                                    :,
+                                    self.config.channel_slice_list_normalized_loss[
+                                        i
+                                    ] : self.config.channel_slice_list_normalized_loss[
+                                        i + 1
+                                    ],
+                                ],
+                                labels[
