@@ -90,3 +90,86 @@ def get_dataset(dataset, **kwargs):
             elif "RiemannCurved" in dataset:
                 from .fluids.compressible import RiemannCurved as dset
             elif "Riemann" in dataset:
+                from .fluids.compressible import Riemann as dset
+            elif "KelvinHelmholtz" in dataset:
+                from .fluids.compressible import KelvinHelmholtz as dset
+            elif "Gaussians" in dataset:
+                from .fluids.compressible import Gaussians as dset
+            elif "RichtmyerMeshkov" in dataset:
+                from .fluids.compressible import RichtmyerMeshkov as dset
+            elif "steady" in dataset:
+                if "steady.Airfoil" in dataset:
+                    from .fluids.compressible import Airfoil as dset
+
+                    if "out" in dataset:
+                        raise ValueError(f"Unknown dataset {dataset}")
+                else:
+                    raise ValueError(f"Unknown dataset {dataset}")
+            else:
+                raise ValueError(f"Unknown dataset {dataset}")
+        else:
+            raise ValueError(f"Unknown dataset {dataset}")
+        if "out" in dataset:
+            default_time_settings = {"max_num_time_steps": 10, "time_step_size": 2}
+        else:
+            default_time_settings = {"max_num_time_steps": 7, "time_step_size": 2}
+        if "tracer" in dataset:
+            tracer = True
+        else:
+            tracer = False
+        if not "steady" in dataset:
+            kwargs = {"tracer": tracer, **default_time_settings, **kwargs}
+    elif "elliptic" in dataset:
+        if ".out" in dataset:
+            raise NotImplementedError(f"Unknown dataset {dataset}")
+        if "elliptic.poisson" in dataset:
+            if "Gaussians" in dataset:
+                from .elliptic.poisson import Gaussians as dset
+            else:
+                raise ValueError(f"Unknown dataset {dataset}")
+        elif "elliptic.Helmholtz" in dataset:
+            from .elliptic.helmholtz import Helmholtz as dset
+        else:
+            raise ValueError(f"Unknown dataset {dataset}")
+    elif "wave" in dataset:
+        if "wave.Layer" in dataset:
+            if "out" in dataset:
+                default_time_settings = {"max_num_time_steps": 10, "time_step_size": 2}
+            else:
+                default_time_settings = {"max_num_time_steps": 7, "time_step_size": 2}
+            kwargs = {**default_time_settings, **kwargs}
+            from .wave.acoustic import Layer as dset
+        elif "wave.Gaussians" in dataset:
+            if "out" in dataset:
+                raise ValueError(f"Unknown dataset {dataset}")
+            else:
+                default_time_settings = {"max_num_time_steps": 7, "time_step_size": 2}
+            kwargs = {**default_time_settings, **kwargs}
+            from .wave.acoustic import Gaussians as dset
+        else:
+            raise ValueError(f"Unknown dataset {dataset}")
+    elif "reaction_diffusion" in dataset:
+        if "reaction_diffusion.AllenCahn" in dataset:
+            if "out" in dataset:
+                default_time_settings = {"max_num_time_steps": 9, "time_step_size": 2}
+            else:
+                default_time_settings = {"max_num_time_steps": 7, "time_step_size": 2}
+            kwargs = {**default_time_settings, **kwargs}
+            from .reaction_diffusion.allen_cahn import AllenCahn as dset
+    else:
+        raise ValueError(f"Unknown dataset {dataset}")
+
+    return dset(**kwargs) if ".time" not in dataset else TimeWrapper(dset(**kwargs))
+
+
+class BaseDataset(Dataset, ABC):
+    """A base class for all datasets. Can be directly derived from if you have a steady/non-time dependent problem."""
+
+    def __init__(
+        self,
+        which: Optional[str] = None,
+        num_trajectories: Optional[int] = None,
+        data_path: Optional[str] = "./data",
+        move_to_local_scratch: Optional[str] = None,
+    ) -> None:
+        """
