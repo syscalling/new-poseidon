@@ -1420,3 +1420,67 @@ class ScOT(Swinv2PreTrainedModel):
                                     ],
                                 ],
                                 labels[
+                                    :,
+                                    self.config.channel_slice_list_normalized_loss[
+                                        i
+                                    ] : self.config.channel_slice_list_normalized_loss[
+                                        i + 1
+                                    ],
+                                ],
+                            )
+                            / (
+                                loss_fn(
+                                    labels[
+                                        :,
+                                        self.config.channel_slice_list_normalized_loss[
+                                            i
+                                        ] : self.config.channel_slice_list_normalized_loss[
+                                            i + 1
+                                        ],
+                                    ],
+                                    torch.zeros_like(
+                                        labels[
+                                            :,
+                                            self.config.channel_slice_list_normalized_loss[
+                                                i
+                                            ] : self.config.channel_slice_list_normalized_loss[
+                                                i + 1
+                                            ],
+                                        ]
+                                    ),
+                                )
+                                + 1e-10
+                            )
+                            for i in range(
+                                len(self.config.channel_slice_list_normalized_loss) - 1
+                            )
+                        ]
+                    )
+                )
+            else:
+                loss = loss_fn(prediction, labels)
+
+        if not return_dict:
+            output = (prediction,) + decoder_output[1:] + encoder_outputs[1:]
+            return ((loss,) + output) if loss is not None else output
+
+        return ScOTOutput(
+            loss=loss,
+            output=prediction,
+            hidden_states=(
+                decoder_output.hidden_states + encoder_outputs.hidden_states
+                if output_hidden_states is not None and output_hidden_states is True
+                else None
+            ),
+            attentions=(
+                decoder_output.attentions + encoder_outputs.attentions
+                if output_attentions is not None and output_attentions is True
+                else None
+            ),
+            reshaped_hidden_states=(
+                decoder_output.reshaped_hidden_states
+                + encoder_outputs.reshaped_hidden_states
+                if output_hidden_states is not None and output_hidden_states is True
+                else None
+            ),
+        )
