@@ -173,3 +173,86 @@ class BaseDataset(Dataset, ABC):
         move_to_local_scratch: Optional[str] = None,
     ) -> None:
         """
+        Args:
+            which: Which dataset to use, i.e. train, val, or test.
+            resolution: The resolution of the dataset.
+            num_trajectories: The number of trajectories to use for training.
+            data_path: The path to the data files.
+            move_to_local_scratch: If not None, move the data to this directory at dataset initialization and use it from there.
+        """
+        assert which in ["train", "val", "test"]
+        assert num_trajectories is not None and (
+            num_trajectories > 0 or num_trajectories in [-1, -2, -8]
+        )
+
+        self.num_trajectories = num_trajectories
+        self.data_path = data_path
+        self.which = which
+        self.move_to_local_scratch = move_to_local_scratch
+
+    def _move_to_local_scratch(self, file_path):
+        if self.move_to_local_scratch is not None:
+            data_dir = os.path.join(self.data_path, file_path)
+            file = file_path.split("/")[-1]
+            scratch_dir = self.move_to_local_scratch
+            dest_dir = os.path.join(scratch_dir, file)
+            RANK = int(os.environ.get("LOCAL_RANK", -1))
+            if not os.path.exists(dest_dir) and (RANK == 0 or RANK == -1):
+                print(f"Start copying {file} to {dest_dir}...")
+                shutil.copy(data_dir, dest_dir)
+                print("Finished data copy.")
+            # idk how to do the barrier differently
+            ls = broadcast_object_list([dest_dir], from_process=0)
+            dest_dir = ls[0]
+            return dest_dir
+        else:
+            return file_path
+
+    def post_init(self) -> None:
+        """
+        Call after self.N_max, self.N_val, self.N_test, as well as the file_paths and normalization constants are set.
+        """
+        assert (
+            self.N_max is not None
+            and self.N_max > 0
+            and self.N_max >= self.N_val + self.N_test
+        )
+        if self.num_trajectories == -1:
+            self.num_trajectories = self.N_max - self.N_val - self.N_test
+        elif self.num_trajectories == -2:
+            self.num_trajectories = (self.N_max - self.N_val - self.N_test) // 2
+        elif self.num_trajectories == -8:
+            self.num_trajectories = (self.N_max - self.N_val - self.N_test) // 8
+        assert self.num_trajectories + self.N_val + self.N_test <= self.N_max
+        assert self.N_val is not None and self.N_val > 0
+        assert self.N_test is not None and self.N_test > 0
+        if self.which == "train":
+            self.length = self.num_trajectories
+            self.start = 0
+        elif self.which == "val":
+            self.length = self.N_val
+            self.start = self.N_max - self.N_val - self.N_test
+        else:
+            self.length = self.N_test
+            self.start = self.N_max - self.N_test
+
+        self.output_dim = self.label_description.count(",") + 1
+        descriptors, channel_slice_list = self.get_channel_lists(self.label_description)
+        self.printable_channel_description = descriptors
+        self.channel_slice_list = channel_slice_list
+
+    def __len__(self) -> int:
+        """
+        Returns: overall length of dataset.
+        """
+        return self.length
+
+    def __getitem__(self, idx) -> Dict:
+        """
+        Get an item. OVERWRITE!
+
+        Args:
+            idx: The index of the sample to get.
+
+        Returns:
+            A dict of key-value pairs of data.
