@@ -324,3 +324,57 @@ class BaseTimeDataset(BaseDataset, ABC):
         """
         assert (
             self.N_max is not None
+            and self.N_max > 0
+            and self.N_max >= self.N_val + self.N_test
+        )
+        if self.num_trajectories == -1:
+            self.num_trajectories = self.N_max - self.N_val - self.N_test
+        elif self.num_trajectories == -2:
+            self.num_trajectories = (self.N_max - self.N_val - self.N_test) // 2
+        elif self.num_trajectories == -8:
+            self.num_trajectories = (self.N_max - self.N_val - self.N_test) // 8
+        assert self.num_trajectories + self.N_val + self.N_test <= self.N_max
+        assert self.N_val is not None and self.N_val > 0
+        assert self.N_test is not None and self.N_test > 0
+        assert self.max_num_time_steps is not None and self.max_num_time_steps > 0
+
+        if self.fix_input_to_time_step is not None:
+            self.multiplier = self.max_num_time_steps
+        else:
+            self.time_indices = []
+            for i in range(self.max_num_time_steps + 1):
+                for j in range(i, self.max_num_time_steps + 1):
+                    if (
+                        self.allowed_time_transitions is not None
+                        and (j - i) not in self.allowed_time_transitions
+                    ):
+                        continue
+                    self.time_indices.append(
+                        (self.time_step_size * i, self.time_step_size * j)
+                    )
+            self.multiplier = len(self.time_indices)
+
+        if self.which == "train":
+            self.length = self.num_trajectories * self.multiplier
+            self.start = 0
+        elif self.which == "val":
+            self.length = self.N_val * self.multiplier
+            self.start = self.N_max - self.N_val - self.N_test
+        else:
+            self.length = self.N_test * self.multiplier
+            self.start = self.N_max - self.N_test
+
+        self.output_dim = self.label_description.count(",") + 1
+        descriptors, channel_slice_list = self.get_channel_lists(self.label_description)
+        self.printable_channel_description = descriptors
+        self.channel_slice_list = channel_slice_list
+
+
+class TimeWrapper(BaseTimeDataset):
+    """For time-independent problems to be plugged into time-dependent models."""
+
+    def __init__(self, dataset):
+        super().__init__(
+            dataset.which,
+            dataset.num_trajectories,
+            dataset.data_path,
