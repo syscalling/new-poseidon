@@ -256,3 +256,71 @@ class BaseDataset(Dataset, ABC):
 
         Returns:
             A dict of key-value pairs of data.
+        """
+        pass
+
+    @staticmethod
+    def get_channel_lists(label_description):
+        matches = re.findall(r"\[([^\[\]]+)\]", label_description)
+        channel_slice_list = [0]  # use as channel_slice_list[i]:channel_slice_list[i+1]
+        beautiful_descriptors = []
+        for match in matches:
+            channel_slice_list.append(channel_slice_list[-1] + 1 + match.count(","))
+            splt = match.split(",")
+            if len(splt) > 1:
+                beautiful_descriptors.append("".join(splt))
+            else:
+                beautiful_descriptors.append(match)
+        return beautiful_descriptors, channel_slice_list
+
+
+class BaseTimeDataset(BaseDataset, ABC):
+    """A base class for time dependent problems. Inherit time-dependent problems from here."""
+
+    def __init__(
+        self,
+        *args,
+        max_num_time_steps: Optional[int] = None,
+        time_step_size: Optional[int] = None,
+        fix_input_to_time_step: Optional[int] = None,
+        allowed_time_transitions: Optional[List[int]] = None,
+        **kwargs,
+    ) -> None:
+        """
+        Args:
+            max_num_time_steps: The maximum number of time steps to use.
+            time_step_size: The size of the time step.
+            fix_input_to_time_step: If not None, fix the input to this time step.
+            allowed_time_transitions: If not None, only allow these time transitions (time steps).
+        """
+        assert max_num_time_steps is not None and max_num_time_steps > 0
+        assert time_step_size is not None and time_step_size > 0
+        assert fix_input_to_time_step is None or fix_input_to_time_step >= 0
+
+        super().__init__(*args, **kwargs)
+        self.max_num_time_steps = max_num_time_steps
+        self.time_step_size = time_step_size
+        self.fix_input_to_time_step = fix_input_to_time_step
+        self.allowed_time_transitions = allowed_time_transitions
+
+    def _idx_map(self, idx):
+        i = idx // self.multiplier
+        _idx = idx - i * self.multiplier
+
+        if self.fix_input_to_time_step is None:
+            t1, t2 = self.time_indices[_idx]
+            assert t2 >= t1
+            t = t2 - t1
+        else:
+            t1 = self.fix_input_to_time_step
+            t2 = self.time_step_size * (_idx + 1) + self.fix_input_to_time_step
+            t = t2 - t1
+        return i, t, t1, t2
+
+    def post_init(self) -> None:
+        """
+        Call after self.N_max, self.N_val, self.N_test, as well as the file_paths and normalization constants are set.
+        self.max_time_step must have already been set.
+        """
+        assert (
+            self.N_max is not None
