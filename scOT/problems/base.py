@@ -378,3 +378,19 @@ class TimeWrapper(BaseTimeDataset):
             dataset.which,
             dataset.num_trajectories,
             dataset.data_path,
+            None,
+            max_num_time_steps=1,
+            time_step_size=1,
+        )
+        self.dataset = dataset
+        self.resolution = dataset.resolution
+        self.input_dim = dataset.input_dim
+        self.output_dim = dataset.output_dim
+        self.channel_slice_list = dataset.channel_slice_list
+        self.printable_channel_description = dataset.printable_channel_description
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return {**self.dataset[idx], "time": 1.0}
