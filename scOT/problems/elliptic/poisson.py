@@ -11,4 +11,6 @@ CONSTANTS = {
 }
 
 
-class Gaussians(
+class Gaussians(BaseDataset):
+    def __init__(self, *args, **kwargs):
+        super
