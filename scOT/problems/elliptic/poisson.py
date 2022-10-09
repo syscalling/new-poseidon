@@ -13,4 +13,6 @@ CONSTANTS = {
 
 class Gaussians(BaseDataset):
     def __init__(self, *args, **kwargs):
-        super
+        super().__init__(*args, **kwargs)
+        self.N_max = 20000
+        self.N_
