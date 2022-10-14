@@ -19,4 +19,5 @@ class Gaussians(BaseDataset):
         self.N_test = 240
         self.resolution = 128
 
- 
+        self.file_path = os.path.join(self.data_path, "Poisson-Gauss.nc")
+        self
