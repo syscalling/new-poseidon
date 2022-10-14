@@ -15,4 +15,8 @@ class Gaussians(BaseDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.N_max = 20000
-        self.N_
+        self.N_val = 120
+        self.N_test = 240
+        self.resolution = 128
+
+ 
