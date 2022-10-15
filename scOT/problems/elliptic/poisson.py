@@ -20,4 +20,5 @@ class Gaussians(BaseDataset):
         self.resolution = 128
 
         self.file_path = os.path.join(self.data_path, "Poisson-Gauss.nc")
-        self
+        self.file_path = self._move_to_local_scratch(self.file_path)
+        sel
