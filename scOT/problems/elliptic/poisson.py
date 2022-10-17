@@ -26,3 +26,8 @@ class Gaussians(BaseDataset):
 
         self.input_dim = 1
         self.label_description = "[u]"
+
+        self.post_init()
+
+    def __getitem__(self, idx):
+        inp
