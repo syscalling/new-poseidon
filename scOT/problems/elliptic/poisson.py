@@ -22,4 +22,7 @@ class Gaussians(BaseDataset):
         self.file_path = os.path.join(self.data_path, "Poisson-Gauss.nc")
         self.file_path = self._move_to_local_scratch(self.file_path)
         self.reader = h5py.File(self.file_path, "r")
-        self.constant
+        self.constants = CONSTANTS
+
+        self.input_dim = 1
+        self.label_description = "[u]"
