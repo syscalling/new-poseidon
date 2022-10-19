@@ -30,4 +30,5 @@ class Gaussians(BaseDataset):
         self.post_init()
 
     def __getitem__(self, idx):
-        inp
+        inputs = (
+            torch.from_numpy(self.reader["source"][idx + self.start]
