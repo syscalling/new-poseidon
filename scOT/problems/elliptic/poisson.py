@@ -33,4 +33,8 @@ class Gaussians(BaseDataset):
         inputs = (
             torch.from_numpy(self.reader["source"][idx + self.start])
             .type(torch.float32)
-            .reshape(1, self.resol
+            .reshape(1, self.resolution, self.resolution)
+        )
+
+        labels = (
+            torch.from_nu
