@@ -40,4 +40,6 @@ class Gaussians(BaseDataset):
             torch.from_numpy(self.reader["solution"][idx + self.start])
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
-   
+        )
+
+        inputs = (inputs - self.constants["mean_source"]) / self.constants["s
