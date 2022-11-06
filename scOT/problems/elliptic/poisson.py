@@ -42,4 +42,5 @@ class Gaussians(BaseDataset):
             .reshape(1, self.resolution, self.resolution)
         )
 
-        inputs = (inputs - self.constants["mean_source"]) / self.constants["s
+        inputs = (inputs - self.constants["mean_source"]) / self.constants["std_source"]
+        labels = (labels - self.constants["mean_solution"]) / self.
