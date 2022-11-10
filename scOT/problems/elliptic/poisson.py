@@ -43,4 +43,8 @@ class Gaussians(BaseDataset):
         )
 
         inputs = (inputs - self.constants["mean_source"]) / self.constants["std_source"]
-        labels = (labels - self.constants["mean_solution"]) / self.
+        labels = (labels - self.constants["mean_solution"]) / self.constants[
+            "std_solution"
+        ]
+
+        return {"pixel_
