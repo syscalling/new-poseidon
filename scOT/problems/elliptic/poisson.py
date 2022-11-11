@@ -47,4 +47,4 @@ class Gaussians(BaseDataset):
             "std_solution"
         ]
 
-        return {"pixel_
+        return {"pixel_values": inputs, "labels": labels}
