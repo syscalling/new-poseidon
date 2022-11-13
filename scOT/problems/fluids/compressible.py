@@ -218,3 +218,81 @@ class CompressibleBase(BaseTimeDataset):
         )
 
         self.post_init()
+
+    def __getitem__(self, idx):
+        i, t, t1, t2 = self._idx_map(idx)
+        time = t / self.constants["time"]
+
+        inputs = (
+            torch.from_numpy(self.reader["data"][i + self.start, t1, 0:4])
+            .type(torch.float32)
+            .reshape(4, self.resolution, self.resolution)
+        )
+        label = (
+            torch.from_numpy(self.reader["data"][i + self.start, t2, 0:4])
+            .type(torch.float32)
+            .reshape(4, self.resolution, self.resolution)
+        )
+
+        inputs[3] = inputs[3] - self.mean_pressure
+        label[3] = label[3] - self.mean_pressure
+
+        inputs = (inputs - self.constants["mean"]) / self.constants["std"]
+        label = (label - self.constants["mean"]) / self.constants["std"]
+
+        if self.tracer:
+            input_tracer = (
+                torch.from_numpy(self.reader["data"][i + self.start, t1, 4:5])
+                .type(torch.float32)
+                .reshape(1, self.resolution, self.resolution)
+            )
+            output_tracer = (
+                torch.from_numpy(self.reader["data"][i + self.start, t2, 4:5])
+                .type(torch.float32)
+                .reshape(1, self.resolution, self.resolution)
+            )
+            inputs = torch.cat([inputs, input_tracer], dim=0)
+            label = torch.cat([label, output_tracer], dim=0)
+
+        return {
+            "pixel_values": inputs,
+            "labels": label,
+            "time": time,
+            "pixel_mask": self.pixel_mask,
+        }
+
+
+class Gaussians(CompressibleBase):
+    def __init__(self, *args, tracer=False, **kwargs):
+        self.mean_pressure = 2.513
+        file_path = "/CE-Gauss.nc"
+        if tracer:
+            raise NotImplementedError("Tracer not implemented for Gaussians")
+        super().__init__(file_path, *args, tracer=tracer, **kwargs)
+
+
+class KelvinHelmholtz(CompressibleBase):
+    def __init__(self, *args, tracer=False, **kwargs):
+        self.mean_pressure = 1.0
+        file_path = "/CE-KH.nc"
+        if tracer:
+            raise NotImplementedError("Tracer not implemented for KelvinHelmholtz")
+        super().__init__(file_path, *args, tracer=tracer, **kwargs)
+
+
+class Riemann(CompressibleBase):
+    def __init__(self, *args, tracer=False, **kwargs):
+        self.mean_pressure = 0.215
+        file_path = "/CE-RP.nc"
+        if tracer:
+            raise NotImplementedError("Tracer not implemented for Riemann")
+        super().__init__(file_path, *args, tracer=tracer, **kwargs)
+
+
+class RiemannCurved(CompressibleBase):
+    def __init__(self, *args, tracer=False, **kwargs):
+        self.mean_pressure = 0.553
+        file_path = "/CE-CRP.nc"
+        if tracer:
+            raise NotImplementedError("Tracer not implemented for RiemannCurved")
+        super().__init__(file_path, *args, tracer=tracer, **kwargs)
