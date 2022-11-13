@@ -150,3 +150,71 @@ class RayleighTaylor(BaseTimeDataset):
     def __getitem__(self, idx):
         i, t, t1, t2 = self._idx_map(idx)
         time = t / self.constants["time"]
+
+        inputs = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t1, 0:4])
+            .type(torch.float32)
+            .reshape(4, self.resolution, self.resolution)
+        )
+        label = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t2, 0:4])
+            .type(torch.float32)
+            .reshape(4, self.resolution, self.resolution)
+        )
+
+        g_1 = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t1, 5:6])
+            .type(torch.float32)
+            .reshape(1, self.resolution, self.resolution)
+        )
+        g_2 = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t2, 5:6])
+            .type(torch.float32)
+            .reshape(1, self.resolution, self.resolution)
+        )
+
+        inputs = (inputs - self.constants["mean"][:4]) / self.constants["std"][:4]
+        g_1 = (g_1 - self.constants["mean"][4]) / self.constants["std"][4]
+        g_2 = (g_2 - self.constants["mean"][4]) / self.constants["std"][4]
+        label = (label - self.constants["mean"][:4]) / self.constants["std"][:4]
+
+        inputs = torch.cat([inputs, g_1], dim=0)
+        label = torch.cat([label, g_2], dim=0)
+
+        return {
+            "pixel_values": inputs,
+            "labels": label,
+            "time": time,
+            "pixel_mask": self.pixel_mask,
+        }
+
+
+class CompressibleBase(BaseTimeDataset):
+    def __init__(self, file_path, *args, tracer=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert self.max_num_time_steps * self.time_step_size <= 20
+
+        self.N_max = 10000
+        self.N_val = 120
+        self.N_test = 240
+        self.resolution = 128
+        self.tracer = tracer
+
+        data_path = self.data_path + file_path
+        data_path = self._move_to_local_scratch(data_path)
+        self.reader = h5py.File(data_path, "r")
+
+        self.constants = copy.deepcopy(CONSTANTS)
+
+        self.input_dim = 4 if not tracer else 5
+        self.label_description = (
+            "[rho],[u,v],[p]" if not tracer else "[rho],[u,v],[p],[tracer]"
+        )
+
+        self.pixel_mask = (
+            torch.tensor([False, False, False, False])
+            if not tracer
+            else torch.tensor([False, False, False, False, False])
+        )
+
+        self.post_init()
