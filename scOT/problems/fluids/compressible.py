@@ -296,3 +296,14 @@ class RiemannCurved(CompressibleBase):
         if tracer:
             raise NotImplementedError("Tracer not implemented for RiemannCurved")
         super().__init__(file_path, *args, tracer=tracer, **kwargs)
+
+
+class RiemannKelvinHelmholtz(CompressibleBase):
+    def __init__(self, *args, tracer=False, **kwargs):
+        self.mean_pressure = 1.33
+        file_path = "/CE-RPUI.nc"
+        if tracer:
+            raise NotImplementedError(
+                "Tracer not implemented for RiemannKelvinHelmholtz"
+            )
+        super().__init__(file_path, *args, tracer=tracer, **kwargs)
