@@ -127,3 +127,71 @@ class IncompressibleBase(BaseTimeDataset):
                 output_tracer = output_tracer.transpose(-2, -1)
             input_tracer = (
                 input_tracer - self.constants["tracer_mean"]
+            ) / self.constants["tracer_std"]
+            output_tracer = (
+                output_tracer - self.constants["tracer_mean"]
+            ) / self.constants["tracer_std"]
+
+            inputs = torch.cat([inputs, input_tracer], dim=0)
+            label = torch.cat([label, output_tracer], dim=0)
+
+        if self.res is not None:
+            inputs = self._downsample(inputs, self.res)
+            label = self._downsample(label, self.res)
+
+        return {
+            "pixel_values": inputs,
+            "labels": label,
+            "time": time,
+            "pixel_mask": self.pixel_mask,
+        }
+
+
+class KolmogorovFlow(BaseTimeDataset):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert self.max_num_time_steps * self.time_step_size <= 20
+
+        assert tracer == False
+
+        self.N_max = 20000
+        self.N_val = 120
+        self.N_test = 240
+        self.resolution = 128
+        self.just_velocities = just_velocities
+
+        data_path = self.data_path + "/FNS-KF.nc"
+        data_path = self._move_to_local_scratch(data_path)
+        self.reader = h5py.File(data_path, "r")
+
+        self.constants = copy.deepcopy(CONSTANTS)
+        self.constants["mean"][1] = -2.2424793e-13
+        self.constants["mean"][2] = 4.1510376e-12
+        self.constants["std"][1] = 0.22017328
+        self.constants["std"][2] = 0.22078253
+        if just_velocities:
+            self.constants["mean"] = self.constants["mean"][1:3]
+            self.constants["std"] = self.constants["std"][1:3]
+
+        self.density = torch.ones(1, self.resolution, self.resolution)
+        self.pressure = torch.zeros(1, self.resolution, self.resolution)
+        X, Y = torch.meshgrid(
+            torch.linspace(0, 1, self.resolution),
+            torch.linspace(0, 1, self.resolution),
+            indexing="ij",
+        )
+        f = lambda x, y: 0.1 * torch.sin(2.0 * np.pi * (x + y))
+        self.forcing = f(X, Y).unsqueeze(0)
+        self.constants["mean_forcing"] = -1.2996679288335145e-09
+        self.constants["std_forcing"] = 0.0707106739282608
+        self.forcing = (self.forcing - self.constants["mean_forcing"]) / self.constants[
+            "std_forcing"
+        ]
+
+        self.input_dim = 5 if not tracer else 6
+        if just_velocities:
+            self.input_dim -= 2
+        self.label_description = "[u,v],[g]"
+        if not self.just_velocities:
+            self.label_description = "[rho],[u,v],[p],[g]"
+        if tracer:
