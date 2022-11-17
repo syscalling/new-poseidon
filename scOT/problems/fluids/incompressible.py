@@ -195,3 +195,72 @@ class KolmogorovFlow(BaseTimeDataset):
         if not self.just_velocities:
             self.label_description = "[rho],[u,v],[p],[g]"
         if tracer:
+            self.label_description += ",[tracer]"
+
+        self.pixel_mask = torch.tensor([False, False, False])
+        if not self.just_velocities:
+            self.pixel_mask = torch.tensor([False, False, False, True, False])
+        if tracer:
+            self.pixel_mask = torch.cat(
+                [self.pixel_mask, torch.tensor([False])],
+                dim=0,
+            )
+
+        self.post_init()
+
+    def __getitem__(self, idx):
+        i, t, t1, t2 = self._idx_map(idx)
+        time = t / self.constants["time"]
+
+        inputs_v = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t1, 0:2])
+            .type(torch.float32)
+            .reshape(2, self.resolution, self.resolution)
+        )
+        label_v = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t2, 0:2])
+            .type(torch.float32)
+            .reshape(2, self.resolution, self.resolution)
+        )
+
+        if not self.just_velocities:
+            inputs = torch.cat([self.density, inputs_v, self.pressure], dim=0)
+            label = torch.cat([self.density, label_v, self.pressure], dim=0)
+        else:
+            inputs = inputs_v
+            label = label_v
+
+        inputs = (inputs - self.constants["mean"]) / self.constants["std"]
+        label = (label - self.constants["mean"]) / self.constants["std"]
+
+        inputs = torch.cat([inputs, self.forcing], dim=0)
+        label = torch.cat([label, self.forcing], dim=0)
+
+        return {
+            "pixel_values": inputs,
+            "labels": label,
+            "time": time,
+            "pixel_mask": self.pixel_mask,
+        }
+
+
+class BrownianBridge(IncompressibleBase):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        if tracer:
+            raise ValueError("BrownianBridge does not have a tracer")
+        file_path = "/NS-BB.nc"
+        super().__init__(
+            20000,
+            file_path,
+            *args,
+            tracer=False,
+            just_velocities=just_velocities,
+            **kwargs
+        )
+
+
+class PiecewiseConstants(IncompressibleBase):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        file_path = "/NS-PwC.nc"
+        super().__init__(
+            20000,
