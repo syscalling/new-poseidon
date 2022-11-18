@@ -264,3 +264,69 @@ class PiecewiseConstants(IncompressibleBase):
         file_path = "/NS-PwC.nc"
         super().__init__(
             20000,
+            file_path,
+            *args,
+            tracer=tracer,
+            just_velocities=just_velocities,
+            **kwargs
+        )
+
+
+class Gaussians(IncompressibleBase):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        if tracer:
+            raise ValueError("Gaussians does not have a tracer")
+        file_path = "/NS-Gauss.nc"
+        super().__init__(
+            20000,
+            file_path,
+            *args,
+            tracer=False,
+            just_velocities=just_velocities,
+            **kwargs
+        )
+
+
+class ShearLayer(IncompressibleBase):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        if tracer:
+            raise ValueError("Shear layer does not have a tracer")
+        super().__init__(
+            40000,
+            "/NS-SL.nc",
+            *args,
+            transpose=True,
+            tracer=False,
+            just_velocities=just_velocities,
+            **kwargs
+        )
+
+
+class VortexSheet(IncompressibleBase):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        if tracer:
+            raise ValueError("VortexSheet does not have a tracer")
+        file_path = "/NS-SVS.nc"
+        super().__init__(
+            20000,
+            file_path,
+            *args,
+            tracer=False,
+            just_velocities=just_velocities,
+            **kwargs
+        )
+
+
+class Sines(IncompressibleBase):
+    def __init__(self, *args, tracer=False, just_velocities=False, **kwargs):
+        if tracer:
+            raise ValueError("Sines does not have a tracer")
+        file_path = "/NS-Sines.nc"
+        super().__init__(
+            20000,
+            file_path,
+            *args,
+            tracer=False,
+            just_velocities=just_velocities,
+            **kwargs
+        )
