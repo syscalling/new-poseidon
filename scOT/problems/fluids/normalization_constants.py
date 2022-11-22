@@ -1,4 +1,5 @@
 import torch
 
 CONSTANTS = {
-    "mean": torch.tensor([0.80, 0.0, 0.0, 0.0
+    "mean": torch.tensor([0.80, 0.0, 0.0, 0.0]).unsqueeze(1).unsqueeze(1),
+    "std": torch.tensor([0.31, 0.391, 0.356, 0.
