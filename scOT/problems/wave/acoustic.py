@@ -122,3 +122,5 @@ class Gaussians(BaseTimeDataset):
         return {
             "pixel_values": inputs,
             "labels": labels,
+            "time": time,
+        }
