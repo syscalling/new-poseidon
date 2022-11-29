@@ -19,4 +19,6 @@ import matplotlib.pyplot as plt
 import transformers
 from accelerate.utils import broadcast_object_list
 from scOT.trainer import TrainingArguments, Trainer
-from transformers import EarlyStoppingCal
+from transformers import EarlyStoppingCallback
+from scOT.model import ScOT, ScOTConfig
+from mpl_toolkits.ax
