@@ -18,4 +18,5 @@ import yaml
 import matplotlib.pyplot as plt
 import transformers
 from accelerate.utils import broadcast_object_list
-from scOT.trainer impor
+from scOT.trainer import TrainingArguments, Trainer
+from transformers import EarlyStoppingCal
