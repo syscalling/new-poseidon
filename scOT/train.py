@@ -23,4 +23,5 @@ from transformers import EarlyStoppingCallback
 from scOT.model import ScOT, ScOTConfig
 from mpl_toolkits.axes_grid1 import ImageGrid
 from scOT.problems.base import get_dataset, BaseTimeDataset
-from scOT.utils import get_num_parameters, read_cli,
+from scOT.utils import get_num_parameters, read_cli, get_num_parameters_no_embed
+from scOT.metrics import relative
