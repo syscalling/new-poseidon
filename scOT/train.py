@@ -24,4 +24,9 @@ from scOT.model import ScOT, ScOTConfig
 from mpl_toolkits.axes_grid1 import ImageGrid
 from scOT.problems.base import get_dataset, BaseTimeDataset
 from scOT.utils import get_num_parameters, read_cli, get_num_parameters_no_embed
-from scOT.metrics import relative
+from scOT.metrics import relative_lp_error
+
+SEED = 0
+torch.manual_seed(SEED)
+np.random.seed(SEED)
+rand
