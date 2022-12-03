@@ -29,4 +29,9 @@ from scOT.metrics import relative_lp_error
 SEED = 0
 torch.manual_seed(SEED)
 np.random.seed(SEED)
-rand
+random.seed(SEED)
+
+
+MODEL_MAP = {
+    "T": {
+        "num_heads": [3
