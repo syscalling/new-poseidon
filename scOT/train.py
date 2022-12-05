@@ -39,4 +39,7 @@ MODEL_MAP = {
         "window_size": 16,
         "patch_size": 4,
         "mlp_ratio": 4.0,
-        "de
+        "depths": [4, 4, 4, 4],
+        "embed_dim": 48,
+    },
+    "S": 
