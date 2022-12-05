@@ -34,4 +34,6 @@ random.seed(SEED)
 
 MODEL_MAP = {
     "T": {
-        "num_heads": [3
+        "num_heads": [3, 6, 12, 24],
+        "skip_connections": [2, 2, 2, 0],
+        "
