@@ -36,4 +36,7 @@ MODEL_MAP = {
     "T": {
         "num_heads": [3, 6, 12, 24],
         "skip_connections": [2, 2, 2, 0],
-        "
+        "window_size": 16,
+        "patch_size": 4,
+        "mlp_ratio": 4.0,
+        "de
