@@ -42,4 +42,6 @@ MODEL_MAP = {
         "depths": [4, 4, 4, 4],
         "embed_dim": 48,
     },
-    "S": 
+    "S": {
+        "num_heads": [3, 6, 12, 24],
+        "skip_connections": [2
