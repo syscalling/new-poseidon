@@ -46,4 +46,7 @@ MODEL_MAP = {
         "num_heads": [3, 6, 12, 24],
         "skip_connections": [2, 2, 2, 0],
         "window_size": 16,
-        "patch_si
+        "patch_size": 4,
+        "mlp_ratio": 4.0,
+        "depths": [8, 8, 8, 8],
+        "embed
