@@ -44,4 +44,6 @@ MODEL_MAP = {
     },
     "S": {
         "num_heads": [3, 6, 12, 24],
-        "skip_connections": [2
+        "skip_connections": [2, 2, 2, 0],
+        "window_size": 16,
+        "patch_si
