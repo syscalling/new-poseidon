@@ -53,4 +53,6 @@ MODEL_MAP = {
     },
     "B": {
         "num_heads": [3, 6, 12, 24],
-        "sk
+        "skip_connections": [2, 2, 2, 0],
+        "window_size": 16,
+        "pat
