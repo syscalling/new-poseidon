@@ -58,4 +58,7 @@ MODEL_MAP = {
         "patch_size": 4,
         "mlp_ratio": 4.0,
         "depths": [8, 8, 8, 8],
-  
+        "embed_dim": 96,
+    },
+    "L": {
+        "num_heads": [3, 6, 12,
