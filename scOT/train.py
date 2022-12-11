@@ -61,4 +61,6 @@ MODEL_MAP = {
         "embed_dim": 96,
     },
     "L": {
-        "num_heads": [3, 6, 12,
+        "num_heads": [3, 6, 12, 24],
+        "skip_connections": [2, 2, 2, 0],
+        "wi
