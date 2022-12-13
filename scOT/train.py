@@ -73,4 +73,6 @@ MODEL_MAP = {
 
 
 def create_predictions_plot(predictions, labels, wandb_prefix):
-    assert p
+    assert predictions.shape[0] >= 4
+
+    indices = random.sample(range(pre
