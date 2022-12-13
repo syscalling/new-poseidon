@@ -68,4 +68,9 @@ MODEL_MAP = {
         "mlp_ratio": 4.0,
         "depths": [8, 8, 8, 8],
         "embed_dim": 192,
- 
+    },
+}
+
+
+def create_predictions_plot(predictions, labels, wandb_prefix):
+    assert p
