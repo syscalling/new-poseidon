@@ -78,4 +78,8 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
     indices = random.sample(range(predictions.shape[0]), 4)
 
     predictions = predictions[indices]
-    labels = l
+    labels = labels[indices]
+
+    fig = plt.figure()
+    grid = ImageGrid(
+        fig, 111, nro
