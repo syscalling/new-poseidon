@@ -82,4 +82,7 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
 
     fig = plt.figure()
     grid = ImageGrid(
-        fig, 111, nrows_ncols=(predictions.shape[1] + labels.shape[1], 4), axes_pad
+        fig, 111, nrows_ncols=(predictions.shape[1] + labels.shape[1], 4), axes_pad=0.1
+    )
+
+    vmax, vmin = max(predictions.max(), labels.max()), min(
