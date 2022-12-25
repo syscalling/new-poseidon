@@ -94,3 +94,6 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
         j = _i % 4
 
         if i % 2 == 0:
+            ax.imshow(
+                predictions[j, i // 2, :, :],
+       
