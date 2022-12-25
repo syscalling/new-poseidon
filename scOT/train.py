@@ -86,3 +86,7 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
     )
 
     vmax, vmin = max(predictions.max(), labels.max()), min(
+        predictions.min(), labels.min()
+    )
+
+    for _i, ax in e
