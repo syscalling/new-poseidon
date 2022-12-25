@@ -89,4 +89,8 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
         predictions.min(), labels.min()
     )
 
-    for _i, ax in e
+    for _i, ax in enumerate(grid):
+        i = _i // 4
+        j = _i % 4
+
+        if i % 2 == 0:
