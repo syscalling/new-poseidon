@@ -96,4 +96,6 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
         if i % 2 == 0:
             ax.imshow(
                 predictions[j, i // 2, :, :],
-       
+                cmap="gist_ncar",
+                origin="lower",
+                vmin=v
