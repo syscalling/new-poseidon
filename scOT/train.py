@@ -98,4 +98,8 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
                 predictions[j, i // 2, :, :],
                 cmap="gist_ncar",
                 origin="lower",
-                vmin=v
+                vmin=vmin,
+                vmax=vmax,
+            )
+        else:
+            ax.imshow(
