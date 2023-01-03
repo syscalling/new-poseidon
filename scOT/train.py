@@ -103,3 +103,5 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
             )
         else:
             ax.imshow(
+                labels[j, i // 2, :, :],
+                cma
