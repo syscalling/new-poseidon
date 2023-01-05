@@ -106,4 +106,8 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
                 labels[j, i // 2, :, :],
                 cmap="gist_ncar",
                 origin="lower",
-                v
+                vmin=vmin,
+                vmax=vmax,
+            )
+
+        ax.set_xticks([])
