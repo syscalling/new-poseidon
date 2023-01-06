@@ -111,3 +111,6 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
             )
 
         ax.set_xticks([])
+        ax.set_yticks([])
+
+    wandb.log({wandb
