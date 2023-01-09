@@ -113,4 +113,8 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
         ax.set_xticks([])
         ax.set_yticks([])
 
-    wandb.log({wandb
+    wandb.log({wandb_prefix + "/predictions": wandb.Image(fig)})
+    plt.close()
+
+
+def setup(pa
