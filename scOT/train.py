@@ -120,4 +120,6 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
 def setup(params, model_map=True):
     config = None
     RANK = int(os.environ.get("LOCAL_RANK", -1))
-    CPU_CORES = len(psutil.Process()
+    CPU_CORES = len(psutil.Process().cpu_affinity())
+    CPU_CORES = min(CPU_CORES, 16)
+    print(
