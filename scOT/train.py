@@ -117,4 +117,6 @@ def create_predictions_plot(predictions, labels, wandb_prefix):
     plt.close()
 
 
-def setup(pa
+def setup(params, model_map=True):
+    config = None
+    RANK = int(os.envi
