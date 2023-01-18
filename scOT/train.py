@@ -122,4 +122,5 @@ def setup(params, model_map=True):
     RANK = int(os.environ.get("LOCAL_RANK", -1))
     CPU_CORES = len(psutil.Process().cpu_affinity())
     CPU_CORES = min(CPU_CORES, 16)
-    print(
+    print(f"Detected {CPU_CORES} CPU cores, will use {CPU_CORES} workers.")
+    
