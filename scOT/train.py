@@ -123,4 +123,5 @@ def setup(params, model_map=True):
     CPU_CORES = len(psutil.Process().cpu_affinity())
     CPU_CORES = min(CPU_CORES, 16)
     print(f"Detected {CPU_CORES} CPU cores, will use {CPU_CORES} workers.")
-    
+    if params.disable_tqdm:
+        transformers.utils.logging.disable_prog
