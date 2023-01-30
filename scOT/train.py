@@ -126,4 +126,8 @@ def setup(params, model_map=True):
     if params.disable_tqdm:
         transformers.utils.logging.disable_progress_bar()
     if params.json_config:
-        config = json.loads(par
+        config = json.loads(params.config)
+    else:
+        config = params.config
+
+    i
