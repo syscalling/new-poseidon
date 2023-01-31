@@ -130,4 +130,6 @@ def setup(params, model_map=True):
     else:
         config = params.config
 
-    i
+    if RANK == 0 or RANK == -1:
+        run = wandb.init(
+            project=
