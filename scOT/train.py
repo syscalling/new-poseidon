@@ -137,4 +137,6 @@ def setup(params, model_map=True):
         config = wandb.config
     else:
 
-        def clea
+        def clean_yaml(config):
+            d = {}
+            for key, i
