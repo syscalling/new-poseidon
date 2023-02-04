@@ -139,4 +139,6 @@ def setup(params, model_map=True):
 
         def clean_yaml(config):
             d = {}
-            for key, i
+            for key, inner_dict in config.items():
+                d[key] = inner_dict["value"]
+   
