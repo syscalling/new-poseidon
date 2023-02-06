@@ -141,4 +141,7 @@ def setup(params, model_map=True):
             d = {}
             for key, inner_dict in config.items():
                 d[key] = inner_dict["value"]
-   
+            return d
+
+        if not params.json_config:
+           
