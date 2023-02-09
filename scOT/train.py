@@ -144,4 +144,5 @@ def setup(params, model_map=True):
             return d
 
         if not params.json_config:
-           
+            with open(params.config, "r") as s:
+                config = yaml.sa
