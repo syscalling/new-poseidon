@@ -145,4 +145,6 @@ def setup(params, model_map=True):
 
         if not params.json_config:
             with open(params.config, "r") as s:
-                config = yaml.sa
+                config = yaml.safe_load(s)
+            config = clean_yaml(config)
+        run = 
