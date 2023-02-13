@@ -147,4 +147,8 @@ def setup(params, model_map=True):
             with open(params.config, "r") as s:
                 config = yaml.safe_load(s)
             config = clean_yaml(config)
-        run = 
+        run = None
+
+    ckpt_dir = "./"
+    if RANK == 0 or RANK == -1:
+        if 
