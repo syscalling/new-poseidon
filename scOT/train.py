@@ -153,4 +153,6 @@ def setup(params, model_map=True):
     if RANK == 0 or RANK == -1:
         if run.sweep_id is not None:
             ckpt_dir = (
-                
+                params.checkpoint_path
+                + "/"
+                + run.project
