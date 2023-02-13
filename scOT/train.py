@@ -151,4 +151,6 @@ def setup(params, model_map=True):
 
     ckpt_dir = "./"
     if RANK == 0 or RANK == -1:
-        if 
+        if run.sweep_id is not None:
+            ckpt_dir = (
+                
