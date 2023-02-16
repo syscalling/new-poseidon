@@ -158,4 +158,8 @@ def setup(params, model_map=True):
                 + run.project
                 + "/"
                 + run.sweep_id
-         
+                + "/"
+                + run.name
+            )
+        else:
+            ckpt_
