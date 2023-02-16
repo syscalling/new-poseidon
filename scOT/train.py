@@ -162,4 +162,5 @@ def setup(params, model_map=True):
                 + run.name
             )
         else:
-            ckpt_
+            ckpt_dir = params.checkpoint_path + "/" + run.project + "/" + run.name
+    if (RANK ==
