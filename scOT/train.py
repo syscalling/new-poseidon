@@ -156,3 +156,6 @@ def setup(params, model_map=True):
                 params.checkpoint_path
                 + "/"
                 + run.project
+                + "/"
+                + run.sweep_id
+         
