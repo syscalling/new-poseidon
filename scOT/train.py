@@ -168,4 +168,5 @@ def setup(params, model_map=True):
     ls = broadcast_object_list([ckpt_dir], from_process=0)
     ckpt_dir = ls[0]
 
- 
+    if model_map and (
+        type(config["model_name"]) == str and config["
