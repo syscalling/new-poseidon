@@ -165,4 +165,7 @@ def setup(params, model_map=True):
             ckpt_dir = params.checkpoint_path + "/" + run.project + "/" + run.name
     if (RANK == 0 or RANK == -1) and not os.path.exists(ckpt_dir):
         os.makedirs(ckpt_dir)
-  
+    ls = broadcast_object_list([ckpt_dir], from_process=0)
+    ckpt_dir = ls[0]
+
+ 
