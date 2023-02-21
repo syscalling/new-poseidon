@@ -172,4 +172,5 @@ def setup(params, model_map=True):
         type(config["model_name"]) == str and config["model_name"] in MODEL_MAP.keys()
     ):
         config = {**config, **MODEL_MAP[config["model_name"]]}
-        if RA
+        if RANK == 0 or RANK == -1:
+            wandb.config.update(MODEL_MAP[config["mo
