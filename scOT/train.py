@@ -171,4 +171,5 @@ def setup(params, model_map=True):
     if model_map and (
         type(config["model_name"]) == str and config["model_name"] in MODEL_MAP.keys()
     ):
-        config = {
+        config = {**config, **MODEL_MAP[config["model_name"]]}
+        if RA
