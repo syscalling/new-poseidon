@@ -173,4 +173,6 @@ def setup(params, model_map=True):
     ):
         config = {**config, **MODEL_MAP[config["model_name"]]}
         if RANK == 0 or RANK == -1:
-            wandb.config.update(MODEL_MAP[config["mo
+            wandb.config.update(MODEL_MAP[config["model_name"]], allow_val_change=True)
+
+    return run, config, ckpt_dir, RA
