@@ -175,4 +175,8 @@ def setup(params, model_map=True):
         if RANK == 0 or RANK == -1:
             wandb.config.update(MODEL_MAP[config["model_name"]], allow_val_change=True)
 
-    return run, config, ckpt_dir, RA
+    return run, config, ckpt_dir, RANK, CPU_CORES
+
+
+if __name__ == "__main__":
+    parser = argparse.
