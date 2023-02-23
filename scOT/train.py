@@ -181,4 +181,7 @@ def setup(params, model_map=True):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train scOT or pretrain Poseidon.")
     parser.add_argument("--resume_training", action="store_true")
-    pars
+    parser.add_argument(
+        "--finetune_from",
+        type=str,
+       
