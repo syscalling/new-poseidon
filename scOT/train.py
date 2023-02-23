@@ -184,4 +184,5 @@ if __name__ == "__main__":
     parser.add_argument(
         "--finetune_from",
         type=str,
-       
+        default=None,
+        help="Set this to a str pointing to a HF
