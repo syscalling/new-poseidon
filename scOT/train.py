@@ -179,4 +179,5 @@ def setup(params, model_map=True):
 
 
 if __name__ == "__main__":
-    parser = argparse.
+    parser = argparse.ArgumentParser(description="Train scOT or pretrain Poseidon.")
+    parser.add
