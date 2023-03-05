@@ -185,4 +185,4 @@ if __name__ == "__main__":
         "--finetune_from",
         type=str,
         default=None,
-        help="Set this to a str pointing to a HF
+        help="Set this to a str pointing to a HF Hub model checkpoint or a directory with a scOT checkpoint if you want 
