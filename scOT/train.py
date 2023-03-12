@@ -188,4 +188,6 @@ if __name__ == "__main__":
         help="Set this to a str pointing to a HF Hub model checkpoint or a directory with a scOT checkpoint if you want to finetune.",
     )
     parser.add_argument(
-        "--replace_em
+        "--replace_embedding_recovery",
+        action="store_true",
+        help="Set this if you have to replace th
