@@ -190,4 +190,4 @@ if __name__ == "__main__":
     parser.add_argument(
         "--replace_embedding_recovery",
         action="store_true",
-        help="Set this if you have to replace th
+        help="Set this if you have to replace the embeddings and recovery layers because you are not just using the density
