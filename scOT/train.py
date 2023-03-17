@@ -190,4 +190,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--replace_embedding_recovery",
         action="store_true",
-        help="Set this if you have to replace the embeddings and recovery layers because you are not just using the density, velocity and pressure channels. Only relevant for finetuning."
+        help="Set this if you have to replace the embeddings and recovery layers because you are not just using the density, velocity and pressure channels. Only relevant for finetuning.",
+    )
+    params = read_cli(parser).parse_args()
+    run, config, c
