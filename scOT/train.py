@@ -193,4 +193,6 @@ if __name__ == "__main__":
         help="Set this if you have to replace the embeddings and recovery layers because you are not just using the density, velocity and pressure channels. Only relevant for finetuning.",
     )
     params = read_cli(parser).parse_args()
-    run, config, c
+    run, config, ckpt_dir, RANK, CPU_CORES = setup(params)
+
+    train_eval_set_kwargs
