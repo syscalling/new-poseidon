@@ -195,4 +195,6 @@ if __name__ == "__main__":
     params = read_cli(parser).parse_args()
     run, config, ckpt_dir, RANK, CPU_CORES = setup(params)
 
-    train_eval_set_kwargs
+    train_eval_set_kwargs = (
+        {"just_velocities": True}
+        if ("incompressible"
