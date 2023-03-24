@@ -197,4 +197,5 @@ if __name__ == "__main__":
 
     train_eval_set_kwargs = (
         {"just_velocities": True}
-        if ("incompressible"
+        if ("incompressible" in config["dataset"]) and params.just_velocities
+        el
