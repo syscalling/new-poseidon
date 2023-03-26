@@ -202,4 +202,5 @@ if __name__ == "__main__":
     )
     if params.move_data is not None:
         train_eval_set_kwargs["move_to_local_scratch"] = params.move_data
-    
+    if params.max_num_train_time_steps is not None:
+        train_eval
