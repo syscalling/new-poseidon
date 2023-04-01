@@ -205,4 +205,5 @@ if __name__ == "__main__":
     if params.max_num_train_time_steps is not None:
         train_eval_set_kwargs["max_num_time_steps"] = params.max_num_train_time_steps
     if params.train_time_step_size is not None:
-        train_eval_set_kwargs["ti
+        train_eval_set_kwargs["time_step_size"] = params.train_time_step_size
+    if params.train_small_t
