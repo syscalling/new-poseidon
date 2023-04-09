@@ -208,4 +208,5 @@ if __name__ == "__main__":
         train_eval_set_kwargs["time_step_size"] = params.train_time_step_size
     if params.train_small_time_transition:
         train_eval_set_kwargs["allowed_time_transitions"] = [1]
-    train
+    train_dataset = get_dataset(
+        dataset=config["dataset"]
