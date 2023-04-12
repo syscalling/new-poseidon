@@ -214,4 +214,7 @@ if __name__ == "__main__":
         num_trajectories=config["num_trajectories"],
         data_path=params.data_path,
         **train_eval_set_kwargs,
-  
+    )
+    eval_dataset = get_dataset(
+        dataset=config["dataset"],
+        
