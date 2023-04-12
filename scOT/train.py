@@ -209,4 +209,7 @@ if __name__ == "__main__":
     if params.train_small_time_transition:
         train_eval_set_kwargs["allowed_time_transitions"] = [1]
     train_dataset = get_dataset(
-        dataset=config["dataset"]
+        dataset=config["dataset"],
+        which="train",
+        num_trajectories=config["num_trajectories"],
+ 
