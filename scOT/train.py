@@ -219,3 +219,6 @@ if __name__ == "__main__":
         dataset=config["dataset"],
         which="val",
         num_trajectories=config["num_trajectories"],
+        data_path=params.data_path,
+        **train_eval_set_kwargs,
+    )
