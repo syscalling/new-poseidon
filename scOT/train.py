@@ -217,4 +217,5 @@ if __name__ == "__main__":
     )
     eval_dataset = get_dataset(
         dataset=config["dataset"],
-        
+        which="val",
+        num_trajectories=config["num_trajectories"],
