@@ -222,3 +222,6 @@ if __name__ == "__main__":
         data_path=params.data_path,
         **train_eval_set_kwargs,
     )
+
+    config["effective_train_set_size"] = len(train_dataset)
+    
