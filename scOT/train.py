@@ -226,4 +226,7 @@ if __name__ == "__main__":
     config["effective_train_set_size"] = len(train_dataset)
     time_involved = isinstance(train_dataset, BaseTimeDataset) or (
         isinstance(train_dataset, torch.utils.data.ConcatDataset)
-        and isinstance(t
+        and isinstance(train_dataset.datasets[0], BaseTimeDataset)
+    )
+
+    if not is
