@@ -231,4 +231,5 @@ if __name__ == "__main__":
 
     if not isinstance(train_dataset, torch.utils.data.ConcatDataset):
         resolution = train_dataset.resolution
-        input_dim = train_
+        input_dim = train_dataset.input_dim
+        output_dim = train_dataset.output_dim
