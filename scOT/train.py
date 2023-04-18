@@ -229,4 +229,5 @@ if __name__ == "__main__":
         and isinstance(train_dataset.datasets[0], BaseTimeDataset)
     )
 
-    if not is
+    if not isinstance(train_dataset, torch.utils.data.ConcatDataset):
+        reso
