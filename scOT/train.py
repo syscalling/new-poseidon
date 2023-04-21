@@ -236,4 +236,6 @@ if __name__ == "__main__":
         channel_slice_list = train_dataset.channel_slice_list
         printable_channel_description = train_dataset.printable_channel_description
     else:
-        resolution = train_datas
+        resolution = train_dataset.datasets[0].resolution
+        input_dim = train_dataset.datasets[0].input_dim
+  
