@@ -238,4 +238,5 @@ if __name__ == "__main__":
     else:
         resolution = train_dataset.datasets[0].resolution
         input_dim = train_dataset.datasets[0].input_dim
-  
+        output_dim = train_dataset.datasets[0].output_dim
+        channel_slice_li
