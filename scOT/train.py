@@ -242,3 +242,7 @@ if __name__ == "__main__":
         channel_slice_list = train_dataset.datasets[0].channel_slice_list
         printable_channel_description = train_dataset.datasets[
             0
+        ].printable_channel_description
+
+    model_config = (
+        Sc
