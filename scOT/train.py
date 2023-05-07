@@ -245,4 +245,6 @@ if __name__ == "__main__":
         ].printable_channel_description
 
     model_config = (
-        Sc
+        ScOTConfig(
+            image_size=resolution,
+         
