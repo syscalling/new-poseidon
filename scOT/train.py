@@ -250,4 +250,6 @@ if __name__ == "__main__":
             patch_size=config["patch_size"],
             num_channels=input_dim,
             num_out_channels=output_dim,
-            embed
+            embed_dim=config["embed_dim"],
+            depths=config["depths"],
+          
