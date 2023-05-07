@@ -248,4 +248,6 @@ if __name__ == "__main__":
         ScOTConfig(
             image_size=resolution,
             patch_size=config["patch_size"],
-            num_channels
+            num_channels=input_dim,
+            num_out_channels=output_dim,
+            embed
