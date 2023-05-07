@@ -247,4 +247,5 @@ if __name__ == "__main__":
     model_config = (
         ScOTConfig(
             image_size=resolution,
-         
+            patch_size=config["patch_size"],
+            num_channels
