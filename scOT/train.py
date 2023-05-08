@@ -252,4 +252,5 @@ if __name__ == "__main__":
             num_out_channels=output_dim,
             embed_dim=config["embed_dim"],
             depths=config["depths"],
-          
+            num_heads=config["num_heads"],
+            skip_connections=config["skip_c
