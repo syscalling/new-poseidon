@@ -253,4 +253,5 @@ if __name__ == "__main__":
             embed_dim=config["embed_dim"],
             depths=config["depths"],
             num_heads=config["num_heads"],
-            skip_connections=config["skip_c
+            skip_connections=config["skip_connections"],
+            window_size=config["window_size"],
