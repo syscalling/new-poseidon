@@ -255,3 +255,5 @@ if __name__ == "__main__":
             num_heads=config["num_heads"],
             skip_connections=config["skip_connections"],
             window_size=config["window_size"],
+            mlp_ratio=config["mlp_ratio"],
+            qkv_bias=True
