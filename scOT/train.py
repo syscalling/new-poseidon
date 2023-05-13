@@ -256,4 +256,6 @@ if __name__ == "__main__":
             skip_connections=config["skip_connections"],
             window_size=config["window_size"],
             mlp_ratio=config["mlp_ratio"],
-            qkv_bias=True
+            qkv_bias=True,
+            hidden_dropout_prob=0.0,  # default
+            at
