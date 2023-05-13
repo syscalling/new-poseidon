@@ -258,4 +258,6 @@ if __name__ == "__main__":
             mlp_ratio=config["mlp_ratio"],
             qkv_bias=True,
             hidden_dropout_prob=0.0,  # default
-            at
+            attention_probs_dropout_prob=0.0,  # default
+            drop_path_rate=0.0,
+          
