@@ -262,4 +262,7 @@ if __name__ == "__main__":
             drop_path_rate=0.0,
             hidden_act="gelu",
             use_absolute_embeddings=False,
-            initiali
+            initializer_range=0.02,
+            layer_norm_eps=1e-5,
+            p=1,
+   
