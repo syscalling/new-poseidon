@@ -260,4 +260,6 @@ if __name__ == "__main__":
             hidden_dropout_prob=0.0,  # default
             attention_probs_dropout_prob=0.0,  # default
             drop_path_rate=0.0,
-          
+            hidden_act="gelu",
+            use_absolute_embeddings=False,
+            initiali
