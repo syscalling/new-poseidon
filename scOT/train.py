@@ -266,4 +266,6 @@ if __name__ == "__main__":
             layer_norm_eps=1e-5,
             p=1,
             channel_slice_list_normalized_loss=channel_slice_list,
-            resi
+            residual_model="convnext",
+            use_conditioning=time_involved,
+        
