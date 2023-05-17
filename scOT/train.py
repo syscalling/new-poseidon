@@ -270,4 +270,8 @@ if __name__ == "__main__":
             use_conditioning=time_involved,
             learn_residual=False,
         )
-        if params.finetune_from is None o
+        if params.finetune_from is None or params.replace_embedding_recovery
+        else None
+    )
+
+    train
