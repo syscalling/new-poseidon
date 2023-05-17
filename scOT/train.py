@@ -268,4 +268,6 @@ if __name__ == "__main__":
             channel_slice_list_normalized_loss=channel_slice_list,
             residual_model="convnext",
             use_conditioning=time_involved,
-        
+            learn_residual=False,
+        )
+        if params.finetune_from is None o
