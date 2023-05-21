@@ -276,4 +276,4 @@ if __name__ == "__main__":
 
     train_config = TrainingArguments(
         output_dir=ckpt_dir,
-        overw
+        overwrite_output_dir=True,  #! OVERWRITE THIS DIRECTORY IN CASE, also for re
