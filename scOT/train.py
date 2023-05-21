@@ -274,4 +274,6 @@ if __name__ == "__main__":
         else None
     )
 
-    train
+    train_config = TrainingArguments(
+        output_dir=ckpt_dir,
+        overw
