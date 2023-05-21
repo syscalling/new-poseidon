@@ -278,4 +278,5 @@ if __name__ == "__main__":
         output_dir=ckpt_dir,
         overwrite_output_dir=True,  #! OVERWRITE THIS DIRECTORY IN CASE, also for resuming training
         evaluation_strategy="epoch",
-        per
+        per_device_train_batch_size=config["batch_size"],
+        per_devic
