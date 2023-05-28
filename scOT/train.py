@@ -282,4 +282,5 @@ if __name__ == "__main__":
         per_device_eval_batch_size=config["batch_size"],
         eval_accumulation_steps=16,
         max_grad_norm=config["max_grad_norm"],
-   
+        num_train_epochs=config["num_epochs"],
+        optim="adam
