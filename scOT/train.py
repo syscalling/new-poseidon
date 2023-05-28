@@ -283,4 +283,6 @@ if __name__ == "__main__":
         eval_accumulation_steps=16,
         max_grad_norm=config["max_grad_norm"],
         num_train_epochs=config["num_epochs"],
-        optim="adam
+        optim="adamw_torch",
+        learning_rate=config["lr"],
+        learning_rate_
