@@ -285,4 +285,6 @@ if __name__ == "__main__":
         num_train_epochs=config["num_epochs"],
         optim="adamw_torch",
         learning_rate=config["lr"],
-        learning_rate_
+        learning_rate_embedding_recovery=(
+            None
+            if (params.
