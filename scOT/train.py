@@ -290,4 +290,6 @@ if __name__ == "__main__":
             if (params.finetune_from is None or "lr_embedding_recovery" not in config)
             else config["lr_embedding_recovery"]
         ),
-        learning
+        learning_rate_time_embedding=(
+            None
+        
