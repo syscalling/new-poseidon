@@ -297,3 +297,5 @@ if __name__ == "__main__":
         ),
         weight_decay=config["weight_decay"],
         adam_beta1=0.9,  # default
+        adam_beta2=0.999,  # default
+        adam_epsilon=1e-
