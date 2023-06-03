@@ -295,4 +295,5 @@ if __name__ == "__main__":
             if (params.finetune_from is None or "lr_time_embedding" not in config)
             else config["lr_time_embedding"]
         ),
-        weight
+        weight_decay=config["weight_decay"],
+        adam_beta1=0.9,  # default
