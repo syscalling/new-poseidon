@@ -292,4 +292,5 @@ if __name__ == "__main__":
         ),
         learning_rate_time_embedding=(
             None
-        
+            if (params.finetune_from is None or "lr_time_embedding" not in config)
+  
