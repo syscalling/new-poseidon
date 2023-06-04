@@ -300,4 +300,5 @@ if __name__ == "__main__":
         adam_beta2=0.999,  # default
         adam_epsilon=1e-8,  # default
         lr_scheduler_type=config["lr_scheduler"],
-        warmup_r
+        warmup_ratio=config["warmup_ratio"],
+        log_level="passive",
