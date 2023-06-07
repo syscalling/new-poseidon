@@ -302,3 +302,6 @@ if __name__ == "__main__":
         lr_scheduler_type=config["lr_scheduler"],
         warmup_ratio=config["warmup_ratio"],
         log_level="passive",
+        logging_strategy="steps",
+        logging_steps=5,
+        logging_n
