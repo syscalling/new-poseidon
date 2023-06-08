@@ -304,4 +304,6 @@ if __name__ == "__main__":
         log_level="passive",
         logging_strategy="steps",
         logging_steps=5,
-        logging_n
+        logging_nan_inf_filter=False,
+        save_strategy="epoch",
+        save_to
