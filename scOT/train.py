@@ -306,4 +306,7 @@ if __name__ == "__main__":
         logging_steps=5,
         logging_nan_inf_filter=False,
         save_strategy="epoch",
-        save_to
+        save_total_limit=1,
+        seed=SEED,
+        fp16=False,
+      
