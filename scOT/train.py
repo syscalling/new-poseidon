@@ -314,4 +314,6 @@ if __name__ == "__main__":
         metric_for_best_model="loss",
         greater_is_better=False,
         dataloader_pin_memory=True,
-        gradient_
+        gradient_checkpointing=False,
+        auto_find_batch_size=False,
+        full_determinism
