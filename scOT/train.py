@@ -319,4 +319,7 @@ if __name__ == "__main__":
         full_determinism=False,
         torch_compile=False,
         report_to="wandb",
- 
+        run_name=params.wandb_run_name,
+    )
+
+    early
