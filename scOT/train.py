@@ -316,4 +316,7 @@ if __name__ == "__main__":
         dataloader_pin_memory=True,
         gradient_checkpointing=False,
         auto_find_batch_size=False,
-        full_determinism
+        full_determinism=False,
+        torch_compile=False,
+        report_to="wandb",
+ 
