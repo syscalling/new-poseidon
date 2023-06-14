@@ -323,4 +323,5 @@ if __name__ == "__main__":
     )
 
     early_stopping = EarlyStoppingCallback(
-        early_stopping_patience=conf
+        early_stopping_patience=config["early_stopping_patience"],
+        early_stopping_thre
