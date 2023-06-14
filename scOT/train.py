@@ -327,4 +327,5 @@ if __name__ == "__main__":
         early_stopping_threshold=0.0,  # set no threshold for now
     )
 
-    if param
+    if params.finetune_from is not None:
+        model = ScOT.fro
