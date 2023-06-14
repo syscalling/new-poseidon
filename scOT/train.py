@@ -324,4 +324,7 @@ if __name__ == "__main__":
 
     early_stopping = EarlyStoppingCallback(
         early_stopping_patience=config["early_stopping_patience"],
-        early_stopping_thre
+        early_stopping_threshold=0.0,  # set no threshold for now
+    )
+
+    if param
