@@ -322,4 +322,5 @@ if __name__ == "__main__":
         run_name=params.wandb_run_name,
     )
 
-    early
+    early_stopping = EarlyStoppingCallback(
+        early_stopping_patience=conf
