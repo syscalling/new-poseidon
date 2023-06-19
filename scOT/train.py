@@ -329,4 +329,7 @@ if __name__ == "__main__":
 
     if params.finetune_from is not None:
         model = ScOT.from_pretrained(
-            params.finetune_from, config=model_config, i
+            params.finetune_from, config=model_config, ignore_mismatched_sizes=True
+        )
+    else:
+        model = ScOT(model_config
