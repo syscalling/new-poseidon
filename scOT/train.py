@@ -332,4 +332,6 @@ if __name__ == "__main__":
             params.finetune_from, config=model_config, ignore_mismatched_sizes=True
         )
     else:
-        model = ScOT(model_config
+        model = ScOT(model_config)
+    num_params = get_num_parameters(model)
+    config["num_params"] = num_
