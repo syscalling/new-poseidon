@@ -334,4 +334,6 @@ if __name__ == "__main__":
     else:
         model = ScOT(model_config)
     num_params = get_num_parameters(model)
-    config["num_params"] = num_
+    config["num_params"] = num_params
+    num_params_no_embed = get_num_parameters_no_embed(model)
+   
