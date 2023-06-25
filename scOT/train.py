@@ -339,4 +339,6 @@ if __name__ == "__main__":
     config["num_params_wout_embed"] = num_params_no_embed
     if RANK == 0 or RANK == -1:
         print(f"Model size: {num_params}")
-        print(f"Model siz
+        print(f"Model size without embeddings: {num_params_no_embed}")
+
+    def compute_metrics(eva
