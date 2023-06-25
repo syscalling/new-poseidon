@@ -337,4 +337,6 @@ if __name__ == "__main__":
     config["num_params"] = num_params
     num_params_no_embed = get_num_parameters_no_embed(model)
     config["num_params_wout_embed"] = num_params_no_embed
-    if RANK == 0 or RANK == 
+    if RANK == 0 or RANK == -1:
+        print(f"Model size: {num_params}")
+        print(f"Model siz
