@@ -341,4 +341,7 @@ if __name__ == "__main__":
         print(f"Model size: {num_params}")
         print(f"Model size without embeddings: {num_params_no_embed}")
 
-    def compute_metrics(eva
+    def compute_metrics(eval_preds):
+        channel_list = channel_slice_list
+
+        def ge
