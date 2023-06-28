@@ -347,4 +347,5 @@ if __name__ == "__main__":
         def get_statistics(errors):
             median_error = np.median(errors, axis=0)
             mean_error = np.mean(errors, axis=0)
-            std_er
+            std_error = np.std(errors, axis=0)
+            min_error = np.min(errors
