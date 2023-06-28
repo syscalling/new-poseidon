@@ -345,4 +345,6 @@ if __name__ == "__main__":
         channel_list = channel_slice_list
 
         def get_statistics(errors):
-            median_error = np.median(err
+            median_error = np.median(errors, axis=0)
+            mean_error = np.mean(errors, axis=0)
+            std_er
