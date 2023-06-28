@@ -344,4 +344,5 @@ if __name__ == "__main__":
     def compute_metrics(eval_preds):
         channel_list = channel_slice_list
 
-        def ge
+        def get_statistics(errors):
+            median_error = np.median(err
