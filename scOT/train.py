@@ -348,4 +348,6 @@ if __name__ == "__main__":
             median_error = np.median(errors, axis=0)
             mean_error = np.mean(errors, axis=0)
             std_error = np.std(errors, axis=0)
-            min_error = np.min(errors
+            min_error = np.min(errors, axis=0)
+            max_error = np.max(errors, axis=0)
+            retur
