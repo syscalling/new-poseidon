@@ -353,4 +353,5 @@ if __name__ == "__main__":
             return {
                 "median_relative_l1_error": median_error,
                 "mean_relative_l1_error": mean_error,
-                "std_re
+                "std_relative_l1_error": std_error,
+                "min_relative_l1_error": min_erro
