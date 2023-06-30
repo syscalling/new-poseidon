@@ -350,4 +350,6 @@ if __name__ == "__main__":
             std_error = np.std(errors, axis=0)
             min_error = np.min(errors, axis=0)
             max_error = np.max(errors, axis=0)
-            retur
+            return {
+                "median_relative_l1_error": median_error,
+    
