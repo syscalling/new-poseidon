@@ -360,4 +360,5 @@ if __name__ == "__main__":
 
         error_statistics = [
             get_statistics(
-                relative_lp_
+                relative_lp_error(
+                    eval_preds.predictions[:, channel_list[i] 
