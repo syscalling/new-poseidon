@@ -358,4 +358,6 @@ if __name__ == "__main__":
                 "max_relative_l1_error": max_error,
             }
 
-        
+        error_statistics = [
+            get_statistics(
+                relative_lp_
