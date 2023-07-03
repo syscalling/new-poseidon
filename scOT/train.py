@@ -354,4 +354,8 @@ if __name__ == "__main__":
                 "median_relative_l1_error": median_error,
                 "mean_relative_l1_error": mean_error,
                 "std_relative_l1_error": std_error,
-                "min_relative_l1_error": min_erro
+                "min_relative_l1_error": min_error,
+                "max_relative_l1_error": max_error,
+            }
+
+        
