@@ -364,4 +364,6 @@ if __name__ == "__main__":
                     eval_preds.predictions[:, channel_list[i] : channel_list[i + 1]],
                     eval_preds.label_ids[:, channel_list[i] : channel_list[i + 1]],
                     p=1,
-   
+                    return_percent=True,
+                )
+        
