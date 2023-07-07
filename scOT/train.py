@@ -366,4 +366,6 @@ if __name__ == "__main__":
                     p=1,
                     return_percent=True,
                 )
+            )
+            for i in range(len(channel_list) - 1)
         
