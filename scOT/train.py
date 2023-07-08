@@ -374,4 +374,6 @@ if __name__ == "__main__":
             error_statistics = error_statistics[0]
             return error_statistics
         else:
-            mean_ov
+            mean_over_means = np.mean(
+                np.array(
+                    [stats["me
