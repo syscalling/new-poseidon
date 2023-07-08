@@ -368,4 +368,7 @@ if __name__ == "__main__":
                 )
             )
             for i in range(len(channel_list) - 1)
-        
+        ]
+
+        if output_dim == 1:
+            error_statistics = error_statis
