@@ -371,4 +371,7 @@ if __name__ == "__main__":
         ]
 
         if output_dim == 1:
-            error_statistics = error_statis
+            error_statistics = error_statistics[0]
+            return error_statistics
+        else:
+            mean_ov
