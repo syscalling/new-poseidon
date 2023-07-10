@@ -377,4 +377,7 @@ if __name__ == "__main__":
             mean_over_means = np.mean(
                 np.array(
                     [stats["mean_relative_l1_error"] for stats in error_statistics]
-            
+                ),
+                axis=0,
+            )
+            mean_over_m
