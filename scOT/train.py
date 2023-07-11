@@ -383,4 +383,7 @@ if __name__ == "__main__":
             mean_over_medians = np.mean(
                 np.array(
                     [stats["median_relative_l1_error"] for stats in error_statistics]
-            
+                ),
+                axis=0,
+            )
+            error_statistic
