@@ -380,4 +380,6 @@ if __name__ == "__main__":
                 ),
                 axis=0,
             )
-            mean_over_m
+            mean_over_medians = np.mean(
+                np.array(
+                    [stats["med
