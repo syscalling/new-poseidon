@@ -386,4 +386,6 @@ if __name__ == "__main__":
                 ),
                 axis=0,
             )
-            error_statistic
+            error_statistics_ = {
+                "mean_relative_l1_error": mean_over_means,
+     
