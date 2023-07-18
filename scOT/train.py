@@ -388,4 +388,6 @@ if __name__ == "__main__":
             )
             error_statistics_ = {
                 "mean_relative_l1_error": mean_over_means,
+                "mean_over_median_relative_l1_error": mean_over_medians,
+            }
      
