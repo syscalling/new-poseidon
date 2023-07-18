@@ -390,4 +390,5 @@ if __name__ == "__main__":
                 "mean_relative_l1_error": mean_over_means,
                 "mean_over_median_relative_l1_error": mean_over_medians,
             }
-     
+            for i, stats in enumerate(error_statistics):
+                for key, 
