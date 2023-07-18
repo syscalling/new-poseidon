@@ -392,4 +392,5 @@ if __name__ == "__main__":
             }
             for i, stats in enumerate(error_statistics):
                 for key, value in stats.items():
-                    error_statis
+                    error_statistics_[printable_channel_description[i] + "/" + key] = (
+                
