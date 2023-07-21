@@ -397,4 +397,7 @@ if __name__ == "__main__":
                     )
             return error_statistics_
 
-  
+    trainer = Trainer(
+        model=model,
+        args=train_config,
+        train_dat
