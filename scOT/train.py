@@ -400,4 +400,6 @@ if __name__ == "__main__":
     trainer = Trainer(
         model=model,
         args=train_config,
-        train_dat
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        compute_metr
