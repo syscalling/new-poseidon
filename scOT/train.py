@@ -406,4 +406,6 @@ if __name__ == "__main__":
         callbacks=[early_stopping],
     )
 
-    trainer
+    trainer.train(resume_from_checkpoint=params.resume_training)
+
+    if (RAN
