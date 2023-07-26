@@ -402,4 +402,8 @@ if __name__ == "__main__":
         args=train_config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        compute_metr
+        compute_metrics=compute_metrics,
+        callbacks=[early_stopping],
+    )
+
+    trainer
