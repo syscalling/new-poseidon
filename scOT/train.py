@@ -408,4 +408,4 @@ if __name__ == "__main__":
 
     trainer.train(resume_from_checkpoint=params.resume_training)
 
-    if (RAN
+    if (RANK == 0 or RANK == -1) and params.push_to_hf_hub is not No
