@@ -412,3 +412,5 @@ if __name__ == "__main__":
         model.push_to_hub(params.push_to_hf_hub)
 
     do_test = (
+        True
+        if params.max_num_train_time_s
