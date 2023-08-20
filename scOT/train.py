@@ -413,4 +413,6 @@ if __name__ == "__main__":
 
     do_test = (
         True
-        if params.max_num_train_time_s
+        if params.max_num_train_time_steps is None
+        and params.train_time_step_size is None
+        
