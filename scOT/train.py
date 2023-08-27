@@ -415,4 +415,5 @@ if __name__ == "__main__":
         True
         if params.max_num_train_time_steps is None
         and params.train_time_step_size is None
-        
+        and not params.train_small_time_transition
+        and not ".time"
