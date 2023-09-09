@@ -423,4 +423,7 @@ if __name__ == "__main__":
         print("Testing...")
         test_set_kwargs = (
             {"just_velocities": True}
-            if ("incompressible" in config["dataset"])
+            if ("incompressible" in config["dataset"]) and params.just_velocities
+            else {}
+        )
+        out_te
