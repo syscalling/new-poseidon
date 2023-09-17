@@ -428,4 +428,7 @@ if __name__ == "__main__":
         )
         out_test_set_kwargs = (
             {"just_velocities": True}
-            if ("incompressible" in config["dataset"]) and params.just_velocit
+            if ("incompressible" in config["dataset"]) and params.just_velocities
+            else {}
+        )
+        if params.move_data is not None:
