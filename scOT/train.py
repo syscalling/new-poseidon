@@ -432,3 +432,5 @@ if __name__ == "__main__":
             else {}
         )
         if params.move_data is not None:
+            test_set_kwargs["move_to_local_scratch"] = params.move_data
+          
