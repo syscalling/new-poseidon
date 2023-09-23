@@ -434,4 +434,6 @@ if __name__ == "__main__":
         if params.move_data is not None:
             test_set_kwargs["move_to_local_scratch"] = params.move_data
             out_test_set_kwargs["move_to_local_scratch"] = params.move_data
-        i
+        if time_involved:
+            test_set_kwargs = {
+                **test_set_
