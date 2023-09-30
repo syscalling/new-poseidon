@@ -436,4 +436,6 @@ if __name__ == "__main__":
             out_test_set_kwargs["move_to_local_scratch"] = params.move_data
         if time_involved:
             test_set_kwargs = {
-                **test_set_
+                **test_set_kwargs,
+                "max_num_time_steps": 1,
+                "time_step_
