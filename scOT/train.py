@@ -438,4 +438,6 @@ if __name__ == "__main__":
             test_set_kwargs = {
                 **test_set_kwargs,
                 "max_num_time_steps": 1,
-                "time_step_
+                "time_step_size": 14,
+                "allowed_time_transitions": [1],
+    
