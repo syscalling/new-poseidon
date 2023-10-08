@@ -446,4 +446,6 @@ if __name__ == "__main__":
                 "max_num_time_steps": 1,
                 "time_step_size": 20,
                 "allowed_time_transitions": [1],
-   
+            }
+        if "RayleighTaylor" in config["dataset"]:
+           
