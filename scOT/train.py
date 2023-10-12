@@ -450,4 +450,5 @@ if __name__ == "__main__":
         if "RayleighTaylor" in config["dataset"]:
             test_set_kwargs = {
                 **test_set_kwargs,
-                "max_n
+                "max_num_time_steps": 1,
+                "time_step_size": 7,
