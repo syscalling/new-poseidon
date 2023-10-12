@@ -448,4 +448,6 @@ if __name__ == "__main__":
                 "allowed_time_transitions": [1],
             }
         if "RayleighTaylor" in config["dataset"]:
-           
+            test_set_kwargs = {
+                **test_set_kwargs,
+                "max_n
