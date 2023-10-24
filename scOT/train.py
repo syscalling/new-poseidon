@@ -452,3 +452,6 @@ if __name__ == "__main__":
                 **test_set_kwargs,
                 "max_num_time_steps": 1,
                 "time_step_size": 7,
+                "allowed_time_transitions": [1],
+            }
+        
