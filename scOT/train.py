@@ -454,4 +454,5 @@ if __name__ == "__main__":
                 "time_step_size": 7,
                 "allowed_time_transitions": [1],
             }
-        
+            out_test_set_kwargs = {
+                **out_tes
