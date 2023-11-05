@@ -462,4 +462,6 @@ if __name__ == "__main__":
             }
 
         test_dataset = get_dataset(
-            d
+            dataset=config["dataset"],
+            which="test",
+            num
