@@ -464,4 +464,5 @@ if __name__ == "__main__":
         test_dataset = get_dataset(
             dataset=config["dataset"],
             which="test",
-            num
+            num_trajectories=config["num_trajectories"],
+            data_path=params.dat
