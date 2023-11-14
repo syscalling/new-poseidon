@@ -465,4 +465,7 @@ if __name__ == "__main__":
             dataset=config["dataset"],
             which="test",
             num_trajectories=config["num_trajectories"],
-            data_path=params.dat
+            data_path=params.data_path,
+            **test_set_kwargs,
+        )
+        try:
