@@ -471,4 +471,6 @@ if __name__ == "__main__":
         try:
             out_dist_test_dataset = get_dataset(
                 dataset=config["dataset"] + ".out",
-                which="
+                which="test",
+                num_trajectories=config["num_trajectories"],
+                data_path=para
