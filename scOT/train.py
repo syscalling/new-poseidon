@@ -478,4 +478,5 @@ if __name__ == "__main__":
             )
         except:
             out_dist_test_dataset = None
-        predicti
+        predictions = trainer.predict(test_dataset, metric_key_prefix="")
+ 
