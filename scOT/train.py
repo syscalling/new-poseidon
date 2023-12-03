@@ -473,4 +473,7 @@ if __name__ == "__main__":
                 dataset=config["dataset"] + ".out",
                 which="test",
                 num_trajectories=config["num_trajectories"],
-                data_path=para
+                data_path=params.data_path,
+                **out_test_set_kwargs,
+            )
+   
