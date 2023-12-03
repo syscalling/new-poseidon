@@ -476,4 +476,6 @@ if __name__ == "__main__":
                 data_path=params.data_path,
                 **out_test_set_kwargs,
             )
-   
+        except:
+            out_dist_test_dataset = None
+        predicti
