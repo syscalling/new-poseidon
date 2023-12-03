@@ -479,4 +479,6 @@ if __name__ == "__main__":
         except:
             out_dist_test_dataset = None
         predictions = trainer.predict(test_dataset, metric_key_prefix="")
- 
+        if RANK == 0 or RANK == -1:
+            metrics = {}
+            f
