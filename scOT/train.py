@@ -482,4 +482,6 @@ if __name__ == "__main__":
         if RANK == 0 or RANK == -1:
             metrics = {}
             for key, value in predictions.metrics.items():
-                metri
+                metrics["test/" + key[1:]] = value
+            wandb.log(metrics)
+  
