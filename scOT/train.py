@@ -484,4 +484,5 @@ if __name__ == "__main__":
             for key, value in predictions.metrics.items():
                 metrics["test/" + key[1:]] = value
             wandb.log(metrics)
-  
+            create_predictions_plot(
+                prediction
