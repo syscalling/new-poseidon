@@ -492,4 +492,5 @@ if __name__ == "__main__":
 
         # evaluate on out-of-distribution test set
         if out_dist_test_dataset is not None:
-            predictions = t
+            predictions = trainer.predict(out_dist_test_dataset, metric_key_prefix="")
+          
