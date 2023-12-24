@@ -497,4 +497,6 @@ if __name__ == "__main__":
                 metrics = {}
                 for key, value in predictions.metrics.items():
                     metrics["test_out_dist/" + key[1:]] = value
-                wandb.
+                wandb.log(metrics)
+                create_predictions_plot(
+    
