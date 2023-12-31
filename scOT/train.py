@@ -502,4 +502,6 @@ if __name__ == "__main__":
                     predictions.predictions,
                     predictions.label_ids,
                     wandb_prefix="test_out_dist",
-      
+                )
+
+        if time_involved and (test_set_kwargs["time_step_size"] // 2
