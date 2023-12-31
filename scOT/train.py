@@ -500,4 +500,6 @@ if __name__ == "__main__":
                 wandb.log(metrics)
                 create_predictions_plot(
                     predictions.predictions,
-                    predi
+                    predictions.label_ids,
+                    wandb_prefix="test_out_dist",
+      
