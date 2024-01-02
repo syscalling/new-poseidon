@@ -504,4 +504,5 @@ if __name__ == "__main__":
                     wandb_prefix="test_out_dist",
                 )
 
-        if time_involved and (test_set_kwargs["time_step_size"] // 2
+        if time_involved and (test_set_kwargs["time_step_size"] // 2 > 0):
+            trainer.set_ar_steps(test_set_kwargs["time_s
