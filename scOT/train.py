@@ -505,4 +505,5 @@ if __name__ == "__main__":
                 )
 
         if time_involved and (test_set_kwargs["time_step_size"] // 2 > 0):
-            trainer.set_ar_steps(test_set_kwargs["time_s
+            trainer.set_ar_steps(test_set_kwargs["time_step_size"] // 2)
+            predictions = trainer.predict
