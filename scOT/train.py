@@ -509,4 +509,5 @@ if __name__ == "__main__":
             predictions = trainer.predict(test_dataset, metric_key_prefix="")
             if RANK == 0 or RANK == -1:
                 metrics = {}
-                for key, value i
+                for key, value in predictions.metrics.items():
+                    metrics["t
