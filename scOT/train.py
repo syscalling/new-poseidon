@@ -518,4 +518,5 @@ if __name__ == "__main__":
                     wandb_prefix="test/ar",
                 )
 
-            # evaluate
+            # evaluate on out-of-distribution test set
+            if out_dist_test_dataset is
