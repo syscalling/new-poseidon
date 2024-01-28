@@ -519,4 +519,5 @@ if __name__ == "__main__":
                 )
 
             # evaluate on out-of-distribution test set
-            if out_dist_test_dataset is
+            if out_dist_test_dataset is not None:
+                trainer.set_ar_steps(out_test
