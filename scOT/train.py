@@ -521,4 +521,5 @@ if __name__ == "__main__":
             # evaluate on out-of-distribution test set
             if out_dist_test_dataset is not None:
                 trainer.set_ar_steps(out_test_set_kwargs["time_step_size"] // 2)
-                predictions
+                predictions = trainer.predict(
+                    out_dist_test_dataset, metric_key_pref
