@@ -524,4 +524,6 @@ if __name__ == "__main__":
                 predictions = trainer.predict(
                     out_dist_test_dataset, metric_key_prefix=""
                 )
-                if RANK == 0 o
+                if RANK == 0 or RANK == -1:
+                    metrics = {}
+                    for key, va
