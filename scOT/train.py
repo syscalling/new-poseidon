@@ -527,4 +527,5 @@ if __name__ == "__main__":
                 if RANK == 0 or RANK == -1:
                     metrics = {}
                     for key, value in predictions.metrics.items():
-                        metrics["tes
+                        metrics["test_out_dist/ar/" + key[1:]] = value
+                    
