@@ -532,4 +532,5 @@ if __name__ == "__main__":
                     create_predictions_plot(
                         predictions.predictions,
                         predictions.label_ids,
-     
+                        wandb_prefix="test_out_dist/ar",
+      
