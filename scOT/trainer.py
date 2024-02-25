@@ -1,0 +1,54 @@
+
+"""
+Our version of the Huggingface Trainer class.
+It adds learning_rate_time_embedding, learning_rate_embedding_recovery as 
+additional learning rates and groups parameters for the optimizer.
+It also allows for autoregressive rollouts by using 
+trainer.set_ar_steps(AR_STEPS) where AR_STEPS is either a an integer for a 
+homogeneous rollout of AR_STEPS steps or a list of integers for a heterogeneous
+rollout where each element is the timestep.
+If, additionally, output_all_steps is also set, the predict function will
+output all intermediate steps as well.
+
+We sublass a Huggingface Trainer to allow for autoregressive rollouts and multiple parameter groups in the optimizer.
+It is specifically subclassed for our purpose.
+
+A lot of code is copied over because only slight changes have been made.
+
+The original code of Huggingface Transformers is distributed under the Apache 2.0 license. See below:
+
+Copyright 2018- The Hugging Face team. All rights reserved.
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
