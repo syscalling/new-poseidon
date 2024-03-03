@@ -193,3 +193,63 @@ Copyright 2018- The Hugging Face team. All rights reserved.
       defend, and hold each Contributor harmless for any liability
       incurred by, or claims asserted against, such Contributor by reason
       of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+"""
+
+import torch
+from torch import nn
+from typing import List, Optional, Dict, Tuple, Union, Any
+from transformers.trainer import *
+from transformers import Trainer as Trainer_
+from transformers import TrainingArguments as TrainingArguments_
+from scOT.model import LayerNorm, ConditionalLayerNorm
+from dataclasses import dataclass, field
+
+
+@dataclass
+class TrainingArguments(TrainingArguments_):
+    learning_rate_embedding_recovery: Optional[float] = field(
+        default=None,
+        metadata={
+            "help": "The initial learning rate for the embedding/recovery. When not provided, falls back to `learning_rate`."
+        },
+    )
+
+    learning_rate_time_embedding: Optional[float] = field(
+        default=None,
+        metadata={
+            "help": "The initial learning rate for the time embedding. When not provided, falls back to `learning_rate`. Only used when embedding and recovery are also fine-tuned with different lr."
+        },
+    )
+
+    def set_training(
+        self,
+        *args,
+        learning_rate_embedding_recovery: Optional[float] = None,
+        learning_rate_time_embedding: Optional[float] = None,
