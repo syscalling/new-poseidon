@@ -253,3 +253,72 @@ class TrainingArguments(TrainingArguments_):
         *args,
         learning_rate_embedding_recovery: Optional[float] = None,
         learning_rate_time_embedding: Optional[float] = None,
+        **kwargs,
+    ):
+        self = super().set_training(*args, **kwargs)
+        self.learning_rate_embedding_recovery = learning_rate_embedding_recovery
+        self.learning_rate_time_embedding = learning_rate_time_embedding
+        return self
+
+    def set_optimizer(
+        self,
+        *args,
+        learning_rate_embedding_recovery: Optional[float] = None,
+        learning_rate_time_embedding: Optional[float] = None,
+        **kwargs,
+    ):
+        self = super().set_optimizer(*args, **kwargs)
+        self.learning_rate_embedding_recovery = learning_rate_embedding_recovery
+        self.learning_rate_time_embedding = learning_rate_time_embedding
+        return self
+
+
+class Trainer(Trainer_):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ar_steps = None
+        self.output_all_steps = False
+
+    def get_decay_parameter_names(self, model) -> List[str]:
+        ALL_LAYERNORM_LAYERS = [torch.nn.LayerNorm, LayerNorm, ConditionalLayerNorm]
+        decay_parameters = get_parameter_names(model, ALL_LAYERNORM_LAYERS)
+        decay_parameters = [name for name in decay_parameters if "bias" not in name]
+        return decay_parameters
+
+    def get_conditional_norm_params(self, model):
+        params = []
+        for name, module in model.named_modules():
+            if isinstance(module, ConditionalLayerNorm):
+                for param_name, _ in module.named_parameters():
+                    params.append(f"{name}.{param_name}")
+        return params
+
+    def create_optimizer(self):
+        """This is the same as in the standard trainer, except param groups"""
+        opt_model = self.model_wrapped if is_sagemaker_mp_enabled() else self.model
+        if self.optimizer is None:
+            decay_parameters = self.get_decay_parameter_names(self.model)
+            if self.args.learning_rate_embedding_recovery is not None:
+                if self.args.learning_rate_time_embedding is not None:
+                    time_embedding_params = self.get_conditional_norm_params(self.model)
+                    params = {
+                        "standard": [],
+                        "no_weight_decay": [],
+                        "embeddings": [],
+                        "time_embedding": [],
+                    }
+                    for n, p in opt_model.named_parameters():
+                        if (
+                            "embeddings" in n or "patch_recovery" in n
+                        ) and p.requires_grad:
+                            params["embeddings"].append(p)
+                        elif n in decay_parameters and p.requires_grad:
+                            params["standard"].append(p)
+                        elif p.requires_grad:
+                            if n in time_embedding_params:
+                                params["time_embedding"].append(p)
+                            else:
+                                params["no_weight_decay"].append(p)
+                    optimizer_grouped_parameters = [
+                        {
+                            "params": params["standard"],
