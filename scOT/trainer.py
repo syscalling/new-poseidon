@@ -322,3 +322,67 @@ class Trainer(Trainer_):
                     optimizer_grouped_parameters = [
                         {
                             "params": params["standard"],
+                            "weight_decay": self.args.weight_decay,
+                        },
+                        {
+                            "params": params["no_weight_decay"],
+                            "weight_decay": 0.0,
+                        },
+                        {
+                            "params": params["embeddings"],
+                            "lr": self.args.learning_rate_embedding_recovery,
+                            "weight_decay": self.args.weight_decay,
+                        },
+                        {
+                            "params": params["time_embedding"],
+                            "lr": self.args.learning_rate_time_embedding,
+                            "weight_decay": 0.0,
+                        },
+                    ]
+                else:
+                    params = {"standard": [], "no_weight_decay": [], "embeddings": []}
+                    for n, p in opt_model.named_parameters():
+                        if (
+                            "embeddings" in n or "patch_recovery" in n
+                        ) and p.requires_grad:
+                            params["embeddings"].append(p)
+                        elif n in decay_parameters and p.requires_grad:
+                            params["standard"].append(p)
+                        elif p.requires_grad:
+                            params["no_weight_decay"].append(p)
+                    optimizer_grouped_parameters = [
+                        {
+                            "params": params["standard"],
+                            "weight_decay": self.args.weight_decay,
+                        },
+                        {
+                            "params": params["no_weight_decay"],
+                            "weight_decay": 0.0,
+                        },
+                        {
+                            "params": params["embeddings"],
+                            "lr": self.args.learning_rate_embedding_recovery,
+                            "weight_decay": self.args.weight_decay,
+                        },
+                    ]
+            elif self.args.learning_rate_time_embedding is not None:
+                time_embedding_params = self.get_conditional_norm_params(self.model)
+                params = {"standard": [], "no_weight_decay": [], "time_embedding": []}
+                for n, p in opt_model.named_parameters():
+                    if n in decay_parameters and p.requires_grad:
+                        params["standard"].append(p)
+                    elif p.requires_grad:
+                        if n in time_embedding_params:
+                            params["time_embedding"].append(p)
+                        else:
+                            params["no_weight_decay"].append(p)
+                optimizer_grouped_parameters = [
+                    {
+                        "params": params["standard"],
+                        "weight_decay": self.args.weight_decay,
+                    },
+                    {
+                        "params": params["no_weight_decay"],
+                        "weight_decay": 0.0,
+                    },
+                    {
