@@ -386,3 +386,57 @@ class Trainer(Trainer_):
                         "weight_decay": 0.0,
                     },
                     {
+                        "params": params["time_embedding"],
+                        "lr": self.args.learning_rate_time_embedding,
+                        "weight_decay": 0.0,
+                    },
+                ]
+            else:
+                optimizer_grouped_parameters = [
+                    {
+                        "params": [
+                            p
+                            for n, p in opt_model.named_parameters()
+                            if (n in decay_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": self.args.weight_decay,
+                    },
+                    {
+                        "params": [
+                            p
+                            for n, p in opt_model.named_parameters()
+                            if (n not in decay_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": 0.0,
+                    },
+                ]
+
+            optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(
+                self.args
+            )
+
+            if self.sharded_ddp == ShardedDDPOption.SIMPLE:
+                self.optimizer = OSS(
+                    params=optimizer_grouped_parameters,
+                    optim=optimizer_cls,
+                    **optimizer_kwargs,
+                )
+            else:
+                self.optimizer = optimizer_cls(
+                    optimizer_grouped_parameters, **optimizer_kwargs
+                )
+                if optimizer_cls.__name__ == "Adam8bit":
+                    import bitsandbytes
+
+                    manager = bitsandbytes.optim.GlobalOptimManager.get_instance()
+
+                    skipped = 0
+                    for module in opt_model.modules():
+                        if isinstance(module, nn.Embedding):
+                            skipped += sum(
+                                {
+                                    p.data_ptr(): p.numel() for p in module.parameters()
+                                }.values()
+                            )
+                            print(f"skipped {module}: {skipped/2**20}M params")
+                            manager.register_module_override(
