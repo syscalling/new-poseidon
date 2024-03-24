@@ -440,3 +440,82 @@ class Trainer(Trainer_):
                             )
                             print(f"skipped {module}: {skipped/2**20}M params")
                             manager.register_module_override(
+                                module, "weight", {"optim_bits": 32}
+                            )
+                            logger.debug(
+                                f"bitsandbytes: will optimize {module} in fp32"
+                            )
+                    print(f"skipped: {skipped/2**20}M params")
+
+        if is_sagemaker_mp_enabled():
+            self.optimizer = smp.DistributedOptimizer(self.optimizer)
+
+        return self.optimizer
+
+    def set_ar_steps(self, ar_steps=None, output_all_steps=False):
+        self.ar_steps = ar_steps
+        if self.ar_steps is not None and output_all_steps:
+            self.output_all_steps = True
+
+    def _model_forward(self, model, inputs):
+        if self.ar_steps is not None and model.config.use_conditioning:
+            channel_difference = (
+                model.config.num_channels > model.config.num_out_channels
+            )
+            # TODO: if outputs is not a dataclass this will break
+            if isinstance(self.ar_steps, int):
+                inputs = {**inputs, **{"time": inputs["time"] / self.ar_steps}}
+                if self.output_all_steps:
+                    loss_ = []
+                    outputs_ = []
+                    hidden_states_ = []
+                    attentions_ = []
+                    reshaped_hidden_states_ = []
+                else:
+                    loss = 0
+                for i in range(self.ar_steps):
+                    outputs = model(**inputs)
+                    if self.output_all_steps:
+                        outputs_.append(outputs.output.detach())
+                        if outputs.hidden_states is not None:
+                            hidden_states_.append(outputs.hidden_states)
+                        if outputs.attentions is not None:
+                            attentions_.append(outputs.attentions)
+                        if outputs.reshaped_hidden_states is not None:
+                            reshaped_hidden_states_.append(
+                                outputs.reshaped_hidden_states
+                            )
+                        if outputs.loss is not None:
+                            loss_.append(outputs.loss)
+                    else:
+                        if outputs.loss is not None:
+                            loss += outputs.loss
+                    inputs = {
+                        **inputs,
+                        **{
+                            "pixel_values": (
+                                outputs.output.detach()
+                                if not channel_difference
+                                else torch.cat(
+                                    [
+                                        outputs.output.detach(),
+                                        inputs["pixel_values"][
+                                            :,
+                                            model.config.num_out_channels :,
+                                        ],
+                                    ],
+                                    dim=1,
+                                )
+                            )
+                        },
+                    }
+                if self.output_all_steps:
+                    outputs.output = torch.stack(outputs_, dim=1)
+                    if len(loss_) > 0:
+                        outputs.loss = torch.stack(loss_, dim=0)
+                    if len(hidden_states_) > 0:
+                        outputs.hidden_states = [
+                            torch.stack(hs, dim=1) for hs in zip(*hidden_states_)
+                        ]
+                    if len(attentions_) > 0:
+                        outputs.attentions = [
