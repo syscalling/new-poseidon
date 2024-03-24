@@ -519,3 +519,77 @@ class Trainer(Trainer_):
                         ]
                     if len(attentions_) > 0:
                         outputs.attentions = [
+                            torch.stack(att, dim=1) for att in zip(*attentions_)
+                        ]
+                    if len(reshaped_hidden_states_) > 0:
+                        outputs.reshaped_hidden_states = [
+                            torch.stack(rhs, dim=1)
+                            for rhs in zip(*reshaped_hidden_states_)
+                        ]
+                else:
+                    loss /= self.ar_steps
+                    outputs.loss = loss
+            elif isinstance(self.ar_steps, list):
+                if self.output_all_steps:
+                    loss_ = []
+                    outputs_ = []
+                    hidden_states_ = []
+                    attentions_ = []
+                    reshaped_hidden_states_ = []
+                else:
+                    loss = 0
+                lead_time = inputs["time"]
+                for i in self.ar_steps:
+                    inputs = {
+                        **inputs,
+                        **{"time": lead_time * i},
+                    }
+                    outputs = model(**inputs)
+                    if self.output_all_steps:
+                        outputs_.append(outputs.output.detach())
+                    if self.output_all_steps:
+                        outputs_.append(outputs.output.detach())
+                        if outputs.hidden_states is not None:
+                            hidden_states_.append(outputs.hidden_states)
+                        if outputs.attentions is not None:
+                            attentions_.append(outputs.attentions)
+                        if outputs.reshaped_hidden_states is not None:
+                            reshaped_hidden_states_.append(
+                                outputs.reshaped_hidden_states
+                            )
+                        if outputs.loss is not None:
+                            loss_.append(outputs.loss)
+                    else:
+                        if outputs.loss is not None:
+                            loss += outputs.loss
+                    inputs = {
+                        **inputs,
+                        **{
+                            "pixel_values": (
+                                outputs.output.detach()
+                                if not channel_difference
+                                else torch.cat(
+                                    [
+                                        outputs.output.detach(),
+                                        inputs["pixel_values"][
+                                            :,
+                                            model.config.num_out_channels :,
+                                        ],
+                                    ],
+                                    dim=1,
+                                )
+                            )
+                        },
+                    }
+                if self.output_all_steps:
+                    outputs.output = torch.stack(outputs_, dim=1)
+                    if len(loss_) > 0:
+                        outputs.loss = torch.stack(loss_, dim=1)
+                    if len(hidden_states_) > 0:
+                        outputs.hidden_states = [
+                            torch.stack(hs, dim=1) for hs in zip(*hidden_states_)
+                        ]
+                    if len(attentions_) > 0:
+                        outputs.attentions = [
+                            torch.stack(att, dim=1) for att in zip(*attentions_)
+                        ]
